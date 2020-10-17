@@ -5,11 +5,13 @@
 bool gr = 0; // is sprite on the ground?  
 int RH = 1,H; // recent head of main character
 int bullet = 0; // bullet status
+int bx,endx,startx;
 sf::Vector2f spawn = { 20, 300 }; // spawn point
-const int g = 3, nb = 1; // number of ground , number of normal bear
+const int g = 3, nb = 2; // number of ground , number of normal bear
 sf::Sprite shapeSprite; // main character
 sf::RectangleShape ground[g]; // ground
 sf::Sprite Bullet;
+sf::View view;
 float speed = 0; // use when jumping or falling
 bool down = 0, up = 0; // state of jumping
 
@@ -33,7 +35,7 @@ public:
 	{
 		if (head == 1)
 		{
-			body.move(0.065f, .0f);
+			body.move(0.075f, .0f);
 			for (int i = 0; i < g; i++)
 			{
 				if (body.getGlobalBounds().intersects(ground[i].getGlobalBounds()))
@@ -41,7 +43,7 @@ public:
 					on = i;
 					if (body.getPosition().y + 31 > ground[i].getPosition().y)
 					{
-						body.move(-0.065f, 0.f);
+						body.move(-0.075f, 0.f);
 						head = 2;
 						break;
 					}
@@ -51,7 +53,7 @@ public:
 					body.move(width, 0);
 					if (!body.getGlobalBounds().intersects(ground[on].getGlobalBounds()))
 					{
-						body.move(-0.065f, 0.f);
+						body.move(-0.075f, 0.f);
 						head = 2;
 					}
 					body.move(-width, 0.f);
@@ -60,7 +62,7 @@ public:
 		}
 		else if (head == 2)
 		{
-			body.move(-0.065f, .0f);
+			body.move(-0.075f, .0f);
 			for (int i = 0; i < g; i++)
 			{
 				if (body.getGlobalBounds().intersects(ground[i].getGlobalBounds()))
@@ -68,7 +70,7 @@ public:
 					on = i;
 					if (body.getPosition().y + 31 > ground[i].getPosition().y)
 					{
-						body.move(0.065f, 0.f);
+						body.move(0.075f, 0.f);
 						head = 1;
 						break;
 					}
@@ -78,7 +80,7 @@ public:
 					body.move(-width, 0.f);
 					if (!body.getGlobalBounds().intersects(ground[on].getGlobalBounds()))
 					{
-						body.move(0.065f, 0.f);
+						body.move(0.075f, 0.f);
 						head = 1;
 					}
 					body.move(width, 0.f);
@@ -93,22 +95,28 @@ void damageCal();
 void shoot();
 
 normalBear NBear[nb];
+
 int main()
 {
+	startx = 0;
+	endx = 5000;
 	sf::RenderWindow window(sf::VideoMode(1080, 720), "Test");
+	view = window.getView();
 	
-	NBear[0].set(300, 268);
 
-	ground[0].setSize({ 2000.f,32.f });
-	ground[0].setPosition(0.f, 500.f);
+	NBear[0].set(300, 368);
+	NBear[1].set(200, 568);
+
+	ground[0].setSize({ 1200.f,32.f });
+	ground[0].setPosition(0.f, 600.f);
 	ground[0].setFillColor(sf::Color::Green);
 
 	ground[1].setSize({ 200.f,32.f });
-	ground[1].setPosition(200.f, 300.f);
+	ground[1].setPosition(200.f, 400.f);
 	ground[1].setFillColor(sf::Color::Green);
 
-	ground[2].setSize({ 0.1,500 });
-	ground[2].setPosition(0, 0);
+	ground[2].setSize({ 200,32 });
+	ground[2].setPosition(900, 568);
 	ground[2].setFillColor(sf::Color::Green);
 
 	////// Circle
@@ -135,6 +143,7 @@ int main()
 	Bullet.setTextureRect(sf::IntRect(0, 0, 12, 12));
 	while (window.isOpen())
 	{
+		window.setView(view);
 		window.draw(shapeSprite);
 		for (int i = 0; i < g; i++)
 		{
@@ -172,7 +181,7 @@ int main()
 void mainCharacter()
 {
 	gr = 0;
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::A))
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::A) && shapeSprite.getPosition().x > startx)
 	{
 		RH = 2;
 		shapeSprite.move(-0.2f, 0.f);
@@ -183,15 +192,18 @@ void mainCharacter()
 				if (shapeSprite.getPosition().y + 31 > ground[i].getPosition().y)
 				{
 					shapeSprite.move(0.2f, 0.f);
+					if ((view.getCenter().x - shapeSprite.getPosition().x >= -16) && view.getCenter().x - 540 > startx)view.move(0.2, 0);
 					break;
 				}
 			}
 		}
+		if ((view.getCenter().x - shapeSprite.getPosition().x >= -16) && view.getCenter().x - 540 > startx)view.move(-0.2, 0);
 	}
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)&&shapeSprite.getPosition().x+32<endx)
 	{
 		RH = 1;
 		shapeSprite.move(.2f, 0.f);
+		if ((view.getCenter().x - shapeSprite.getPosition().x <= 16) && view.getCenter().x + 540 < endx)view.move(.2, 0);
 		for (int i = 0; i < g; i++)
 		{
 			if (shapeSprite.getGlobalBounds().intersects(ground[i].getGlobalBounds()))
@@ -199,6 +211,7 @@ void mainCharacter()
 				if (shapeSprite.getPosition().y + 31 > ground[i].getPosition().y)
 				{
 					shapeSprite.move(-0.2f, 0.f);
+					if ((view.getCenter().x - shapeSprite.getPosition().x <= 16) && view.getCenter().x + 540 < endx)view.move(-2, 0);
 					break;
 				}
 			}
@@ -288,10 +301,12 @@ void shoot()
 		if (H == 1)
 		{
 			Bullet.setPosition(shapeSprite.getPosition().x+35, shapeSprite.getPosition().y+10);
+			bx = shapeSprite.getPosition().x + 35;
 		}
 		else
 		{
 			Bullet.setPosition(shapeSprite.getPosition().x - 15, shapeSprite.getPosition().y + 10);
+			bx = shapeSprite.getPosition().x - 15;
 		}
 	}
 	if (H == 1)
@@ -313,7 +328,7 @@ void shoot()
 			}
 		}
 	}
-	if (Bullet.getPosition().x - shapeSprite.getPosition().x > 600 || Bullet.getPosition().x - shapeSprite.getPosition().x < -600)
+	if (Bullet.getPosition().x - bx > 600 || Bullet.getPosition().x - bx < -600)
 	{
 		bullet = 0;
 		Bullet.setPosition(-1, -1);

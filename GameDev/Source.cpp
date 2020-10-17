@@ -1,13 +1,22 @@
 #include <SFML/Graphics.hpp>
 #include <iostream>
 #include <stdlib.h>
+#include <time.h>
+#include <string>
 
+clock_t startt, endt;
+int state = 0; // 1 = after recieve damage
+std::string tHP, tScore;
+const int g = 3, nb = 2; // number of ground , number of normal bear
+int HP = 3;
+int score = 0;
 bool gr = 0; // is sprite on the ground?  
 int RH = 1,H; // recent head of main character
 int bullet = 0; // bullet status
 int bx,endx,startx;
+sf::Text textHP,textScore;
+sf::Font font;
 sf::Vector2f spawn = { 20, 300 }; // spawn point
-const int g = 3, nb = 2; // number of ground , number of normal bear
 sf::Sprite shapeSprite; // main character
 sf::RectangleShape ground[g]; // ground
 sf::Sprite Bullet;
@@ -93,6 +102,9 @@ public:
 void mainCharacter();
 void damageCal();
 void shoot();
+void setText();
+void showText();
+std::string changeNtoS(int ,int);
 
 normalBear NBear[nb];
 
@@ -103,7 +115,6 @@ int main()
 	sf::RenderWindow window(sf::VideoMode(1080, 720), "Test");
 	view = window.getView();
 	
-
 	NBear[0].set(300, 368);
 	NBear[1].set(200, 568);
 
@@ -128,23 +139,43 @@ int main()
 	sf::Texture playerTexture,fishbone;
 	if (!playerTexture.loadFromFile("spritesheet.png"))
 	{
-		std::cout << "1 Load failed " << std::endl;
+		std::cout << "spritesheet Load failed " << std::endl;
 	}
 	if (!fishbone.loadFromFile("fishbone.png"))
 	{
-		std::cout << "2 Load failed " << std::endl;
+		std::cout << "fishbone Load failed " << std::endl;
 	}
-
+	if (!font.loadFromFile("fonts/#glidepath.ttf"))
+	{
+		std::cout << "fonts Load failed " << std::endl;
+	}
 	////// Sprite
 	shapeSprite.setTexture(playerTexture);
 	shapeSprite.setTextureRect(sf::IntRect(32, 0, 32, 32));
 	shapeSprite.setPosition(spawn);
 	Bullet.setTexture(fishbone);
 	Bullet.setTextureRect(sf::IntRect(0, 0, 12, 12));
+	////// Text
+	textHP.setFont(font);
+	textHP.setFillColor(sf::Color::White);
+	textHP.setOutlineColor(sf::Color::Black);
+	textHP.setCharacterSize(45);
+	textHP.setStyle(sf::Text::Bold);
+	textHP.setPosition({ 200,0 });
+
+	textScore.setFont(font);
+	textScore.setFillColor(sf::Color::White);
+	textScore.setOutlineColor(sf::Color::Black);
+	textScore.setCharacterSize(45);
+	textScore.setStyle(sf::Text::Bold);
+
 	while (window.isOpen())
 	{
+		setText();
 		window.setView(view);
-		window.draw(shapeSprite);
+		if(state == 0||state == 2)window.draw(shapeSprite);
+		window.draw(textHP);
+		window.draw(textScore);
 		for (int i = 0; i < g; i++)
 		{
 			window.draw(ground[i]);
@@ -184,34 +215,34 @@ void mainCharacter()
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::A) && shapeSprite.getPosition().x > startx)
 	{
 		RH = 2;
-		shapeSprite.move(-0.2f, 0.f);
+		shapeSprite.move(-0.18f, 0.f);
+		if ((view.getCenter().x - shapeSprite.getPosition().x >= -16) && view.getCenter().x - 540 > startx)view.move(-0.18, 0);
 		for (int i = 0; i < g; i++)
 		{
 			if (shapeSprite.getGlobalBounds().intersects(ground[i].getGlobalBounds()))
 			{
 				if (shapeSprite.getPosition().y + 31 > ground[i].getPosition().y)
 				{
-					shapeSprite.move(0.2f, 0.f);
-					if ((view.getCenter().x - shapeSprite.getPosition().x >= -16) && view.getCenter().x - 540 > startx)view.move(0.2, 0);
+					shapeSprite.move(0.18f, 0.f);
+					if ((view.getCenter().x - shapeSprite.getPosition().x >= -16) && view.getCenter().x - 540 > startx)view.move(0.18, 0);
 					break;
 				}
 			}
 		}
-		if ((view.getCenter().x - shapeSprite.getPosition().x >= -16) && view.getCenter().x - 540 > startx)view.move(-0.2, 0);
 	}
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)&&shapeSprite.getPosition().x+32<endx)
 	{
 		RH = 1;
-		shapeSprite.move(.2f, 0.f);
-		if ((view.getCenter().x - shapeSprite.getPosition().x <= 16) && view.getCenter().x + 540 < endx)view.move(.2, 0);
+		shapeSprite.move(.18f, 0.f);
+		if ((view.getCenter().x - shapeSprite.getPosition().x <= 16) && view.getCenter().x + 540 < endx)view.move(.18, 0);
 		for (int i = 0; i < g; i++)
 		{
 			if (shapeSprite.getGlobalBounds().intersects(ground[i].getGlobalBounds()))
 			{
 				if (shapeSprite.getPosition().y + 31 > ground[i].getPosition().y)
 				{
-					shapeSprite.move(-0.2f, 0.f);
-					if ((view.getCenter().x - shapeSprite.getPosition().x <= 16) && view.getCenter().x + 540 < endx)view.move(-2, 0);
+					shapeSprite.move(-0.18f, 0.f);
+					if ((view.getCenter().x - shapeSprite.getPosition().x <= 16) && view.getCenter().x + 540 < endx)view.move(-18, 0);
 					break;
 				}
 			}
@@ -282,13 +313,88 @@ void mainCharacter()
 
 void damageCal()
 {
-	for (int i = 0; i < nb; i++)
+	if (state == 0)
 	{
-		if (shapeSprite.getGlobalBounds().intersects(NBear[i].body.getGlobalBounds()))
+		for (int i = 0; i < nb; i++)
 		{
-			shapeSprite.setPosition(spawn);
-			NBear[i].HP -= 5;
-			break;
+			if (shapeSprite.getGlobalBounds().intersects(NBear[i].body.getGlobalBounds()))
+			{
+				startt = clock();
+				NBear[i].HP -= 5;
+				HP--;
+				state = 1;
+				if (NBear[i].HP <= 0) score += 10;
+				break;
+			}
+		}
+	}
+	else
+	{
+		endt = clock();
+		double dif = double(endt - startt) / CLOCKS_PER_SEC;
+		if (dif >= 2)
+		{
+			state = 0;
+		}
+		else if (dif >= 1.875)
+		{
+			state = 2;
+		}
+		else if (dif >= 1.75)
+		{
+			state = 1;
+		}
+		else if (dif >= 1.625)
+		{
+			state = 2;
+		}
+		else if (dif >= 1.5)
+		{
+			state = 1;
+		}
+		else if (dif >= 1.375)
+		{
+			state = 2;
+		}
+		else if (dif >= 1.25)
+		{
+			state = 1;
+		}
+		else if (dif >= 1.125)
+		{
+			state = 2;
+		}
+		else if (dif >= 1)
+		{
+			state = 1;
+		}
+		else if (dif >= 0.875)
+		{
+			state = 2;
+		}
+		else if (dif >= 0.75)
+		{
+			state = 1;
+		}
+		else if (dif >= 0.625)
+		{
+			state = 2;
+		}
+		else if (dif >= 0.5)
+		{
+			state = 1;
+		}
+		else if (dif >= 0.375)
+		{
+			state = 2;
+		}
+		else if (dif >= 0.25)
+		{
+			state = 1;
+		}
+		else if (dif >= 0.125)
+		{
+			state = 2;
 		}
 	}
 }
@@ -325,6 +431,7 @@ void shoot()
 			{
 				bullet = 3;
 				NBear[i].HP-=10;
+				if (NBear[i].HP <= 0) score += 10;
 			}
 		}
 	}
@@ -333,4 +440,32 @@ void shoot()
 		bullet = 0;
 		Bullet.setPosition(-1, -1);
 	}
+}
+
+void setText()
+{
+	tHP = "X ";
+	tHP.insert(2, changeNtoS(HP,2));
+	textHP.setString(tHP);
+	textHP.setPosition(view.getCenter().x+280,5);
+
+	tScore = "SCORE ";
+	tScore.insert(6, changeNtoS(score, 4));
+	textScore.setString(tScore);
+	textScore.setPosition(view.getCenter().x - 510, 5);
+}
+
+std::string changeNtoS(int num,int zero)
+{
+	char b[10];
+	b[zero] = '\0';
+	int n = num;
+	std::string a = "";
+	for (int i = zero; i >= 1; i--)
+	{
+		b[i - 1] = (n % 10)+'0';
+		n /= 10;
+	}
+	a.insert(0,b);
+	return a;
 }

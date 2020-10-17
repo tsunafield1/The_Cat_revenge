@@ -1,0 +1,41 @@
+| projekt czcionki -> miko³aj pasiñski
+
+| czcionka sk³ada sie z du¿ych i ma³ych liter, cyfr
+  oraz najczêœciej u¿ywanych znaków interpunkcyjnych i symboli.
+
+| mo¿esz: * wykorzystywaæ j¹ we wszelkich projektach o charakterze niekomercyjnym.
+          * tworzyæ dowoln¹ liczbê kopii i instalowaæ j¹ na dowolnej ilosci komputerów.
+          * umieszczaæ j¹ bezp³atnie na stronach www pod warunkiem, ¿e bêdzie udostêpniana
+            za darmo i razem z tym plikiem informacyjnym.
+
+| bez zgody autora nie mo¿esz: * modyfikowaæ pliku z czcionk¹, pliku informacyjnego,
+                                 w szczególnoœci nie mo¿na zmieniaæ nazwy oraz informacji o autorze
+                               * uzywaæ do projektów komercyjnych
+                               * sprzedawaæ lub udostêpniaæ czcionkê na p³atnych stronach www,
+                                 na p³ytach cd i jako skladnik oprogramowania.
+
+| uwagi? pytania? -> awork@gtn.pl
+
+//------------------------------------------------------------------------------------------
+
+| font design -> mikolaj pasinski
+
+| the font consists of big and small letters, digits,
+  most common letters and some symbols
+
+| you can: * use the font in any non-commercial projects.
+           * make an unlimited number of copies and install it on as many computers as you want
+           * distribute this font on your internet site, provided that each copy shall be a true
+             and complete one, including all copyright and trademark notices and shall
+             be accompanied by a copy of this info file.
+
+| without author's permission you must not: * modify the font and the info file, especially you cannot
+                                              change the name of font and author information
+                                            * use the font in commercial projects.
+                                              (if you want to - please send me an email)
+                                            * sell or make this font available on payable
+                                              www sites, cd's or as a program component.
+
+| questions? -> awork@gtn.pl
+
+

@@ -6,15 +6,17 @@
 
 clock_t startt, endt;
 int state = 0; // 1 = after recieve damage
-std::string tHP, tScore;
+std::string tHP, tScore , tFish , tFishbone; // String of HP , Score , Fish , Fishbone
 const int g = 3, nb = 2; // number of ground , number of normal bear
-int HP = 3;
-int score = 0;
+int HP = 3; // Hit point
+int score = 0; 
+int fish = 0; // Fish
+int fishbone = 3; // Ammo
 bool gr = 0; // is sprite on the ground?  
 int RH = 1,H; // recent head of main character
 int bullet = 0; // bullet status
 int bx,endx,startx;
-sf::Text textHP,textScore;
+sf::Text textHP,textScore,textFish,textFishbone;
 sf::Font font;
 sf::Vector2f spawn = { 20, 300 }; // spawn point
 sf::Sprite shapeSprite; // main character
@@ -114,10 +116,12 @@ int main()
 	endx = 5000;
 	sf::RenderWindow window(sf::VideoMode(1080, 720), "Test");
 	view = window.getView();
-	
+	///// Monster /////
 	NBear[0].set(300, 368);
 	NBear[1].set(200, 568);
+	///// Monster /////
 
+	///// Ground /////
 	ground[0].setSize({ 1200.f,32.f });
 	ground[0].setPosition(0.f, 600.f);
 	ground[0].setFillColor(sf::Color::Green);
@@ -129,13 +133,9 @@ int main()
 	ground[2].setSize({ 200,32 });
 	ground[2].setPosition(900, 568);
 	ground[2].setFillColor(sf::Color::Green);
+	///// Ground /////
 
-	////// Circle
-	sf::CircleShape collision(50.f);
-	collision.setPosition({ 200.f, 200.f });
-	collision.setFillColor(sf::Color::Red);
-
-	////// Texture
+	////// Texture /////
 	sf::Texture playerTexture,fishbone;
 	if (!playerTexture.loadFromFile("spritesheet.png"))
 	{
@@ -149,25 +149,42 @@ int main()
 	{
 		std::cout << "fonts Load failed " << std::endl;
 	}
-	////// Sprite
+	////// Texture /////
+
+	////// Sprite /////
 	shapeSprite.setTexture(playerTexture);
 	shapeSprite.setTextureRect(sf::IntRect(32, 0, 32, 32));
 	shapeSprite.setPosition(spawn);
+
 	Bullet.setTexture(fishbone);
 	Bullet.setTextureRect(sf::IntRect(0, 0, 12, 12));
-	////// Text
-	textHP.setFont(font);
-	textHP.setFillColor(sf::Color::White);
-	textHP.setOutlineColor(sf::Color::Black);
-	textHP.setCharacterSize(45);
-	textHP.setStyle(sf::Text::Bold);
-	textHP.setPosition({ 200,0 });
+	////// Sprite /////
 
+	////// Text /////
 	textScore.setFont(font);
 	textScore.setFillColor(sf::Color::White);
 	textScore.setOutlineColor(sf::Color::Black);
 	textScore.setCharacterSize(45);
 	textScore.setStyle(sf::Text::Bold);
+
+	textFish.setFont(font);
+	textFish.setFillColor(sf::Color::White);
+	textFish.setOutlineColor(sf::Color::Black);
+	textFish.setCharacterSize(45);
+	textFish.setStyle(sf::Text::Bold);
+
+	textFishbone.setFont(font);
+	textFishbone.setFillColor(sf::Color::White);
+	textFishbone.setOutlineColor(sf::Color::Black);
+	textFishbone.setCharacterSize(45);
+	textFishbone.setStyle(sf::Text::Bold);
+
+	textHP.setFont(font);
+	textHP.setFillColor(sf::Color::White);
+	textHP.setOutlineColor(sf::Color::Black);
+	textHP.setCharacterSize(45);
+	textHP.setStyle(sf::Text::Bold);
+	////// Text /////
 
 	while (window.isOpen())
 	{
@@ -444,15 +461,25 @@ void shoot()
 
 void setText()
 {
-	tHP = "X ";
-	tHP.insert(2, changeNtoS(HP,2));
-	textHP.setString(tHP);
-	textHP.setPosition(view.getCenter().x+280,5);
-
 	tScore = "SCORE ";
 	tScore.insert(6, changeNtoS(score, 4));
 	textScore.setString(tScore);
 	textScore.setPosition(view.getCenter().x - 510, 5);
+
+	/*tFish = "X ";
+	tFish.insert(2, changeNtoS(fish, 2));
+	textFish.setString(tFish);
+	textFish.setPosition(view.getCenter().x + 280, 5);
+
+	tFishbone = "X ";
+	tFishbone.insert(2, changeNtoS(fishbone, 2));
+	textFishbone.setString(tFishbone);
+	textFishbone.setPosition(view.getCenter().x + 280, 5);*/
+
+	tHP = "X ";
+	tHP.insert(2, changeNtoS(HP,2));
+	textHP.setString(tHP);
+	textHP.setPosition(view.getCenter().x+280,5);
 }
 
 std::string changeNtoS(int num,int zero)

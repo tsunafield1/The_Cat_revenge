@@ -1,13 +1,12 @@
 #include <SFML/Graphics.hpp>
 #include <iostream>
-#include <stdlib.h>
 #include <time.h>
 #include <string>
 
 clock_t startt, endt;
 int state = 0; // 1 = after recieve damage
 std::string tHP, tScore , tFish , tFishbone; // String of HP , Score , Fish , Fishbone
-const int g = 3, nb = 2; // number of ground , number of normal bear
+const int g = 6, nb = 10; // number of ground , number of normal bear
 int HP = 3; // Hit point
 int score = 0; 
 int fish = 0; // Fish
@@ -117,8 +116,16 @@ int main()
 	sf::RenderWindow window(sf::VideoMode(1080, 720), "Test");
 	view = window.getView();
 	///// Monster /////
-	NBear[0].set(300, 368);
-	NBear[1].set(200, 568);
+	NBear[0].set(300, 368); // g1
+	NBear[1].set(200, 568); // g0
+	NBear[2].set(1000,536); // g2
+	NBear[3].set(1400,600); // g3
+	NBear[4].set(2500,600); // g3
+	NBear[5].set(2000,600); // g3
+	NBear[6].set(2250,600); // g3
+	NBear[7].set(1750,400); // g5
+	NBear[8].set(2000,400); // g5
+	NBear[9].set(2500, 400); // g5
 	///// Monster /////
 
 	///// Ground /////
@@ -133,6 +140,18 @@ int main()
 	ground[2].setSize({ 200,32 });
 	ground[2].setPosition(900, 568);
 	ground[2].setFillColor(sf::Color::Green);
+
+	ground[3].setSize({ 1600,32 });
+	ground[3].setPosition(1200, 632);
+	ground[3].setFillColor(sf::Color::Green);
+
+	ground[4].setSize({ 32,232 });
+	ground[4].setPosition(2800, 432);
+	ground[4].setFillColor(sf::Color::Green);
+
+	ground[5].setSize({ 2000,32 });
+	ground[5].setPosition(1500, 432);
+	ground[5].setFillColor(sf::Color::Green);
 	///// Ground /////
 
 	////// Texture /////

@@ -3,25 +3,29 @@
 #include <time.h>
 #include <string>
 
-clock_t startt, endt;
+const int g = 7, nb = 10, tb = 1; // number of ground , number of normal bear , number of throw bear
+clock_t startt, endt,startAttack;
 int state = 0; // 1 = after recieve damage
+int attack = 0; // 0 = ready to attack, 1 = attack state , 2 = after attack
+int attackDamage = 5;
 std::string tHP, tScore , tFish , tFishbone; // String of HP , Score , Fish , Fishbone
-const int g = 6, nb = 10; // number of ground , number of normal bear
 int HP = 3; // Hit point
 int score = 0; 
 int fish = 0; // Fish
 int fishbone = 3; // Ammo
 bool gr = 0; // is sprite on the ground?  
-int RH = 1,H; // recent head of main character
+int RH = 1,BH,AH; // recent head of main character
 int bullet = 0; // bullet status
-int bx,endx,startx;
+int bx,endx,startx; // x of bullet,Highest x,Lowest of x 
 sf::Text textHP,textScore,textFish,textFishbone;
 sf::Font font;
 sf::Vector2f spawn = { 20, 300 }; // spawn point
 sf::Sprite shapeSprite; // main character
+sf::Sprite attackSprite;
 sf::RectangleShape ground[g]; // ground
 sf::Sprite Bullet;
 sf::View view;
+sf::Texture playerTexture, fishboneTexture, attackTexture,stickTexture;
 float speed = 0; // use when jumping or falling
 bool down = 0, up = 0; // state of jumping
 
@@ -30,16 +34,22 @@ class normalBear
 public:
 
 	int head = 2;  // 1 = Right , 2 = Left
-	int HP = 20;
+	int HP;
 	float width = 32, height = 32;
 	int on;  // which ground that body stay
-
 	sf::RectangleShape body;
+	void re()
+	{
+		body.setSize({ 0,0 });
+		body.setPosition(-1, -1);
+		this->HP = -50;
+	}
 	void set(float x, float y)
 	{
 		body.setSize({ width,height });
 		body.setFillColor(sf::Color::Red);
 		body.setPosition(x, y+0.0001);
+		HP = 10;
 	}
 	void move() // walk left or right
 	{
@@ -99,6 +109,52 @@ public:
 		}
 	}
 };
+class throwBear
+{
+public:
+
+	clock_t start;
+	int head; // 1 = Right , 2 = Left
+	int HP = 0;
+	float width = 32, height = 32;
+	int on;  // which ground that body stay
+	sf::RectangleShape body;
+	sf::Sprite stick;
+	void re()
+	{
+		body.setSize({ 0,0 });
+		body.setPosition(-1, -1);
+		this->HP = -50;
+	}
+	void set(float x, float y)
+	{
+		if (HP = 0) { stick.setTexture(stickTexture); }
+		body.setSize({ width,height });
+		body.setFillColor(sf::Color::Yellow);
+		body.setPosition(x, y + 0.0001);
+		HP = 20;
+	}
+	void move() // turn left or right
+	{
+		if (shapeSprite.getPosition().x > body.getPosition().x)
+		{
+			head = 1;
+		}
+		else
+		{
+			head = 2;
+		}
+		if (head == 1)
+		{
+
+		}
+		else
+		{
+
+		}
+	}
+};
+
 
 void mainCharacter();
 void damageCal();
@@ -106,6 +162,7 @@ void shoot();
 void setText();
 void showText();
 std::string changeNtoS(int ,int);
+void scratch();
 
 normalBear NBear[nb];
 
@@ -115,18 +172,6 @@ int main()
 	endx = 5000;
 	sf::RenderWindow window(sf::VideoMode(1080, 720), "Test");
 	view = window.getView();
-	///// Monster /////
-	NBear[0].set(300, 368); // g1
-	NBear[1].set(200, 568); // g0
-	NBear[2].set(1000,536); // g2
-	NBear[3].set(1400,600); // g3
-	NBear[4].set(2500,600); // g3
-	NBear[5].set(2000,600); // g3
-	NBear[6].set(2250,600); // g3
-	NBear[7].set(1750,400); // g5
-	NBear[8].set(2000,400); // g5
-	NBear[9].set(2500, 400); // g5
-	///// Monster /////
 
 	///// Ground /////
 	ground[0].setSize({ 1200.f,32.f });
@@ -152,21 +197,32 @@ int main()
 	ground[5].setSize({ 2000,32 });
 	ground[5].setPosition(1500, 432);
 	ground[5].setFillColor(sf::Color::Green);
+
+	ground[6].setSize({ 100,32 });
+	ground[6].setPosition(0, 568);
+	ground[6].setFillColor(sf::Color::Green);
 	///// Ground /////
 
-	////// Texture /////
-	sf::Texture playerTexture,fishbone;
-	if (!playerTexture.loadFromFile("spritesheet.png"))
+	////// Load Texture /////
+	if (!playerTexture.loadFromFile("sprites/spritesheet.png"))
 	{
 		std::cout << "spritesheet Load failed " << std::endl;
 	}
-	if (!fishbone.loadFromFile("fishbone.png"))
+	if (!fishboneTexture.loadFromFile("sprites/fishbone.png"))
 	{
 		std::cout << "fishbone Load failed " << std::endl;
+	}
+	if (!attackTexture.loadFromFile("sprites/claw.png"))
+	{
+		std::cout << "claw Load failed " << std::endl;
 	}
 	if (!font.loadFromFile("fonts/#glidepath.ttf"))
 	{
 		std::cout << "fonts Load failed " << std::endl;
+	}
+	if (!stickTexture.loadFromFile("sprites/stick.png"))
+	{
+		std::cout << "stick Load failed " << std::endl;
 	}
 	////// Texture /////
 
@@ -175,8 +231,10 @@ int main()
 	shapeSprite.setTextureRect(sf::IntRect(32, 0, 32, 32));
 	shapeSprite.setPosition(spawn);
 
-	Bullet.setTexture(fishbone);
+	Bullet.setTexture(fishboneTexture);
 	Bullet.setTextureRect(sf::IntRect(0, 0, 12, 12));
+
+	attackSprite.setTexture(attackTexture);
 	////// Sprite /////
 
 	////// Text /////
@@ -204,6 +262,18 @@ int main()
 	textHP.setCharacterSize(45);
 	textHP.setStyle(sf::Text::Bold);
 	////// Text /////
+	///// Monster /////
+	NBear[0].set(300, 368); // g1
+	NBear[1].set(200, 568); // g0
+	NBear[2].set(1000,536); // g2
+	NBear[3].set(1400,600); // g3
+	NBear[4].set(2500,600); // g3
+	NBear[5].set(2000,600); // g3
+	NBear[6].set(2250,600); // g3
+	NBear[7].set(1750,400); // g5
+	NBear[8].set(2000,400); // g5
+	NBear[9].set(2500, 400); // g5
+	///// Monster /////
 
 	while (window.isOpen())
 	{
@@ -216,12 +286,8 @@ int main()
 		{
 			window.draw(ground[i]);
 		}
+		endt = clock();
 		mainCharacter();
-		if (bullet > 0)
-		{
-			shoot();
-			if(bullet < 3) window.draw(Bullet);
-		}
 		for (int i = 0; i < nb; i++)
 		{
 			if (NBear[i].HP > 0)
@@ -229,10 +295,21 @@ int main()
 				window.draw(NBear[i].body);
 				NBear[i].move();
 			}
+			else if (NBear[i].HP == -50){}
 			else
 			{
-				NBear[i].set(-1, -1);
+				NBear[i].re();
 			}
+		}
+		if (bullet > 0)
+		{
+			shoot();
+			if (bullet < 3) window.draw(Bullet);
+		}
+		if (attack > 0)
+		{
+			scratch();
+			if (attack < 4)window.draw(attackSprite);
 		}
 		damageCal();
 		window.display();
@@ -286,12 +363,14 @@ void mainCharacter()
 	}
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::K) && bullet == 0)
 	{
-		H = RH;
+		BH = RH;
 		bullet = 1;
 	}
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::J))
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::J) && attack == 0)
 	{
-
+		AH = RH;
+		attack = 1;
+		startAttack = clock();
 	}
 	if ((sf::Keyboard::isKeyPressed(sf::Keyboard::W)) && !down && !up)
 	{
@@ -366,7 +445,6 @@ void damageCal()
 	}
 	else
 	{
-		endt = clock();
 		double dif = double(endt - startt) / CLOCKS_PER_SEC;
 		if (dif >= 2)
 		{
@@ -440,7 +518,7 @@ void shoot()
 	if (bullet == 1)
 	{
 		bullet = 2;
-		if (H == 1)
+		if (BH == 1)
 		{
 			Bullet.setPosition(shapeSprite.getPosition().x+35, shapeSprite.getPosition().y+10);
 			bx = shapeSprite.getPosition().x + 35;
@@ -451,7 +529,7 @@ void shoot()
 			bx = shapeSprite.getPosition().x - 15;
 		}
 	}
-	if (H == 1)
+	if (BH == 1)
 	{
 		Bullet.move(0.25, 0);
 	}
@@ -514,4 +592,122 @@ std::string changeNtoS(int num,int zero)
 	}
 	a.insert(0,b);
 	return a;
+}
+
+void scratch()
+{
+	double dif = double(endt - startAttack) / CLOCKS_PER_SEC;
+	if (attack == 1)
+	{
+		attack = 2;
+		if (AH == 1)
+		{
+			attackSprite.setPosition(shapeSprite.getPosition().x + 35 , shapeSprite.getPosition().y-24);
+		}
+		else
+		{
+			attackSprite.setPosition(shapeSprite.getPosition().x - 51, shapeSprite.getPosition().y-24);
+		}
+		attackSprite.setTextureRect(sf::IntRect(78, 24, 48, 0));
+	}
+	if (attack == 2)
+	{
+		for (int i = 0; i < nb; i++)
+		{
+			if (attackSprite.getGlobalBounds().intersects(NBear[i].body.getGlobalBounds()))
+			{
+				int onG;
+				attack = 3;
+				NBear[i].HP -= attackDamage;
+				if (AH == 1)
+				{
+					for (int j = 0; j < g; j++)
+					{
+						if (NBear[i].body.getGlobalBounds().intersects(ground[j].getGlobalBounds()))
+						{
+							onG = j;
+							break;
+						}
+					}
+					NBear[i].body.move(5, 0);
+					for (int j = 0; j < g; j++)
+					{
+						if (NBear[i].body.getGlobalBounds().intersects(ground[j].getGlobalBounds()))
+						{
+							if (j != onG)
+							{
+								NBear[i].body.move(-5, 0);
+								break;
+							}
+						}
+					}
+				}
+				else
+				{
+					for (int j = 0; j < g; j++)
+					{
+						if (NBear[i].body.getGlobalBounds().intersects(ground[j].getGlobalBounds()))
+						{
+							onG = j;
+							break;
+						}
+					}
+					NBear[i].body.move(-5, 0);
+					for (int j = 0; j < g; j++)
+					{
+						if (NBear[i].body.getGlobalBounds().intersects(ground[j].getGlobalBounds()))
+						{
+							if (j != onG)
+							{
+								NBear[i].body.move(5, 0);
+								break;
+							}
+						}
+					}
+				}
+				if (NBear[i].HP <= 0) score += 10;
+			}
+		}
+	}
+	if (dif > 1)
+	{
+		attack = 0;
+	}
+	else if (dif > 0.25)
+	{ 
+		attackSprite.setTextureRect(sf::IntRect(0, 0, 0, 0));
+		attack = 4;
+	}
+	else if (dif > 0.2)
+	{
+		attackSprite.setTextureRect(sf::IntRect(78, 24, 48, 80));
+	}
+	else if (dif > 0.175)
+	{
+		attackSprite.setTextureRect(sf::IntRect(78, 24, 48, 70));
+	}
+	else if (dif > 0.15)
+	{
+		attackSprite.setTextureRect(sf::IntRect(78, 24, 48, 60));
+	}
+	else if (dif > 0.125)
+	{
+		attackSprite.setTextureRect(sf::IntRect(78, 24, 48, 50));
+	}
+	else if (dif > 0.1)
+	{
+		attackSprite.setTextureRect(sf::IntRect(78, 24, 48, 40));
+	}
+	else if (dif > 0.075)
+	{
+		attackSprite.setTextureRect(sf::IntRect(78, 24, 48, 30));
+	}
+	else if (dif > 0.05)
+	{
+		attackSprite.setTextureRect(sf::IntRect(78, 24, 48, 20));
+	}
+	else if (dif > 0.025)
+	{
+		attackSprite.setTextureRect(sf::IntRect(78, 24, 48, 10));
+	}
 }

@@ -3,7 +3,7 @@
 #include <time.h>
 #include <string>
 
-const int g = 7, nb = 10, tb = 1; // number of ground , number of normal bear , number of throw bear
+const int g = 7, nb = 10, tb = 2; // number of ground , number of normal bear , number of throw bear
 clock_t startt, endt,startAttack;
 int state = 0; // 1 = after recieve damage
 int attack = 0; // 0 = ready to attack, 1 = attack state , 2 = after attack
@@ -113,22 +113,25 @@ class throwBear
 {
 public:
 
-	clock_t start;
+	clock_t start = 0;
+	int sx;
 	int head; // 1 = Right , 2 = Left
 	int HP = 0;
+	int th = 0;
 	float width = 32, height = 32;
-	int on;  // which ground that body stay
 	sf::RectangleShape body;
 	sf::Sprite stick;
 	void re()
 	{
 		body.setSize({ 0,0 });
 		body.setPosition(-1, -1);
-		this->HP = -50;
+		stick.setPosition(-1, -1);
+		stick.setTextureRect({ 0,0,0,0 });
+		HP = -50;
 	}
 	void set(float x, float y)
 	{
-		if (HP = 0) { stick.setTexture(stickTexture); }
+		if (HP == 0) { stick.setTexture(stickTexture); }
 		body.setSize({ width,height });
 		body.setFillColor(sf::Color::Yellow);
 		body.setPosition(x, y + 0.0001);
@@ -139,22 +142,68 @@ public:
 		if (shapeSprite.getPosition().x > body.getPosition().x)
 		{
 			head = 1;
+			// turn left
 		}
 		else
 		{
 			head = 2;
+			// turn right
 		}
-		if (head == 1)
+		if (head == 1 && th == 0)
 		{
-
+			if (body.getPosition().x - shapeSprite.getPosition().x < 1000)
+			{
+				stick.setTextureRect({ 0,0,16,16 });
+				stick.setPosition(body.getPosition().x+width+3,body.getPosition().y+(height/2) - 10);
+				sx = stick.getPosition().x;
+				th = 1;
+				start = clock();
+			}
 		}
-		else
+		else if(head == 2 && th == 0)
 		{
-
+			if (body.getPosition().x - shapeSprite.getPosition().x > -1000)
+			{
+				stick.setTextureRect({ 0,0,16,16 });
+				stick.setPosition(body.getPosition().x-stick.getScale().x+3, body.getPosition().y + (height / 2) - 10);
+				sx = stick.getPosition().x;
+				th = 2;
+				start = clock();
+			}
 		}
 	}
+	void shot()
+	{
+		double dif = (double)(endt - start) / CLOCKS_PER_SEC;
+		if (th == 1)
+		{
+			stick.move(0.25, 0);
+			if (stick.getPosition().x - sx > 600)reStick();
+		}
+		else if (th == 2)
+		{
+			stick.move(-0.25, 0);
+			if (stick.getPosition().x - sx < -600)reStick();
+		}
+		for (int i = 0; i < g; i++)
+		{
+			if (stick.getGlobalBounds().intersects(ground[i].getGlobalBounds()))
+			{
+				reStick();
+			}
+		}
+		if (dif > 4 && th > 0)
+		{
+			th = 0;
+		}
+	}
+	void reStick()
+	{
+		th = 3;
+		stick.setPosition(-1, -1);
+		stick.setTextureRect({ 0,0,0,0 });
+	}
 };
-
 
 void mainCharacter();
 void damageCal();
@@ -165,6 +214,7 @@ std::string changeNtoS(int ,int);
 void scratch();
 
 normalBear NBear[nb];
+throwBear TBear[tb];
 
 int main()
 {
@@ -273,6 +323,9 @@ int main()
 	NBear[7].set(1750,400); // g5
 	NBear[8].set(2000,400); // g5
 	NBear[9].set(2500, 400); // g5
+
+	TBear[0].set(1400, 600);
+	TBear[1].set(300, 368);
 	///// Monster /////
 
 	while (window.isOpen())
@@ -282,10 +335,6 @@ int main()
 		if(state == 0||state == 2)window.draw(shapeSprite);
 		window.draw(textHP);
 		window.draw(textScore);
-		for (int i = 0; i < g; i++)
-		{
-			window.draw(ground[i]);
-		}
 		endt = clock();
 		mainCharacter();
 		for (int i = 0; i < nb; i++)
@@ -301,6 +350,29 @@ int main()
 				NBear[i].re();
 			}
 		}
+		for (int i = 0; i < tb; i++)
+		{
+			if (TBear[i].HP == -50) {}
+			else if (TBear[i].th < 3 && TBear[i].th > 0)
+			{
+				window.draw(TBear[i].stick);
+			}
+
+		}
+		for (int i = 0; i < tb; i++)
+		{
+			if (TBear[i].HP > 0)
+			{
+				window.draw(TBear[i].body);
+				TBear[i].move();
+				TBear[i].shot();
+			}
+			else if (TBear[i].HP == -50) {}
+			else if (TBear[i].HP <=0)
+			{
+				TBear[i].re();
+			}
+		}
 		if (bullet > 0)
 		{
 			shoot();
@@ -310,6 +382,10 @@ int main()
 		{
 			scratch();
 			if (attack < 4)window.draw(attackSprite);
+		}
+		for (int i = 0; i < g; i++)
+		{
+			window.draw(ground[i]);
 		}
 		damageCal();
 		window.display();
@@ -442,6 +518,35 @@ void damageCal()
 				break;
 			}
 		}
+		if (state == 0)
+		{
+			for (int i = 0; i < tb; i++)
+			{
+				if (shapeSprite.getGlobalBounds().intersects(TBear[i].body.getGlobalBounds()))
+				{
+					startt = clock();
+					TBear[i].HP -= 5;
+					HP--;
+					state = 1;
+					if (TBear[i].HP <= 0) score += 20;
+					break;
+				}
+			}
+		}
+		if (state == 0)
+		{
+			for (int i = 0; i < tb; i++)
+			{
+				if (shapeSprite.getGlobalBounds().intersects(TBear[i].stick.getGlobalBounds()))
+				{
+					startt = clock();
+					HP--;
+					state = 1;
+					TBear[i].reStick();
+					break;
+				}
+			}
+		}
 	}
 	else
 	{
@@ -546,6 +651,31 @@ void shoot()
 				bullet = 3;
 				NBear[i].HP-=10;
 				if (NBear[i].HP <= 0) score += 10;
+				break;
+			}
+		}
+		if (bullet == 2)
+		{
+			for (int i = 0; i < tb; i++)
+			{
+				if (Bullet.getGlobalBounds().intersects(TBear[i].body.getGlobalBounds()))
+				{
+					bullet = 3;
+					TBear[i].HP -= 10;
+					if (TBear[i].HP <= 0) score += 20;
+					break;
+				}
+			}
+		}
+		if (bullet == 2)
+		{
+			for (int i = 0; i < g; i++)
+			{
+				if (Bullet.getGlobalBounds().intersects(ground[i].getGlobalBounds()))
+				{
+					bullet = 3;
+					break;
+				}
 			}
 		}
 	}
@@ -666,6 +796,18 @@ void scratch()
 					}
 				}
 				if (NBear[i].HP <= 0) score += 10;
+			}
+		}
+		if (attack == 2)
+		{
+			for (int i = 0; i < tb; i++)
+			{
+				if (attackSprite.getGlobalBounds().intersects(TBear[i].body.getGlobalBounds()))
+				{
+					attack = 3;
+					TBear[i].HP -= attackDamage;
+					if (TBear[i].HP <= 0) score += 20;
+				}
 			}
 		}
 	}

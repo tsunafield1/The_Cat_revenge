@@ -3,7 +3,8 @@
 #include <time.h>
 #include <string>
 
-const int g = 7, nb = 10, tb = 2; // number of ground , number of normal bear , number of throw bear
+const int g = 7, nb = 10, tb = 1; // number of ground , number of normal bear , number of throw bear
+const int f = 20, fb = 20; // number of fish , number of fishbone
 clock_t startt, endt,startAttack;
 int state = 0; // 1 = after recieve damage
 int attack = 0; // 0 = ready to attack, 1 = attack state , 2 = after attack
@@ -25,10 +26,59 @@ sf::Sprite attackSprite;
 sf::RectangleShape ground[g]; // ground
 sf::Sprite Bullet;
 sf::View view;
-sf::Texture playerTexture, fishboneTexture, attackTexture,stickTexture;
+sf::Texture playerTexture, fishboneTexture, attackTexture,stickTexture,fishTexture;
 float speed = 0; // use when jumping or falling
 bool down = 0, up = 0; // state of jumping
 
+class Fish
+{
+public:
+
+	int state = 0;
+	float width = 24, height = 24;
+	sf::Sprite body;
+	void re()
+	{
+		this->state = 2;
+		body.setTextureRect(sf::IntRect(0, 0, 0, 0));
+		body.setPosition(0, 0);
+	}
+	void set(float x, float y)
+	{
+		if (state == 0)
+		{
+			body.setTexture(fishTexture);
+			body.setTextureRect(sf::IntRect(0, 0, width, height));
+		}
+		this->state = 1;
+		body.setPosition(x, y);
+	}
+};
+class Fishbone
+{
+public:
+
+	int state = 0;
+	float width = 24, height = 24;
+	sf::Sprite body;
+	void re()
+	{
+		this->state = 2;
+		body.setTextureRect(sf::IntRect(0, 0, 0, 0));
+		body.setPosition(0, 0);
+	}
+	void set(float x, float y)
+	{
+		if (state == 0)
+		{
+			body.setTexture(fishboneTexture);
+			body.setTextureRect(sf::IntRect(0, 0, width, height));
+		}
+		this->state = 1;
+		body.setPosition(x, y);
+	}
+};
+Fishbone FISHBONE[fb];
 class normalBear 
 {
 public:
@@ -40,6 +90,18 @@ public:
 	sf::RectangleShape body;
 	void re()
 	{
+		int rng = rand() % 100;
+		if (rng < 20)
+		{
+			for (int i = 0; i < fb; i++)
+			{
+				if (FISHBONE[i].state != 1)
+				{
+					FISHBONE[i].set(body.getPosition().x+((this->width-FISHBONE[i].width)/2), body.getPosition().y+3);
+					break;
+				}
+			}
+		}
 		body.setSize({ 0,0 });
 		body.setPosition(-1, -1);
 		this->HP = -50;
@@ -123,6 +185,18 @@ public:
 	sf::Sprite stick;
 	void re()
 	{
+		int rng = rand() % 100;
+		if (rng < 20)
+		{
+			for (int i = 0; i < fb; i++)
+			{
+				if (FISHBONE[i].state != 1)
+				{
+					FISHBONE[i].set(body.getPosition().x + ((this->width - FISHBONE[i].width) / 2), body.getPosition().y+3);
+					break;
+				}
+			}
+		}
 		body.setSize({ 0,0 });
 		body.setPosition(-1, -1);
 		stick.setPosition(-1, -1);
@@ -212,129 +286,41 @@ void setText();
 void showText();
 std::string changeNtoS(int ,int);
 void scratch();
+void loadTexture();
+void setSprite();
+void firstTextSet();
+void setGround1();
+void setMonster1();
+void setFish1();
+void collectFish();
 
 normalBear NBear[nb];
 throwBear TBear[tb];
+Fish FISH[f];
 
 int main()
 {
 	startx = 0;
 	endx = 5000;
-	sf::RenderWindow window(sf::VideoMode(1080, 720), "Test");
+	sf::RenderWindow window(sf::VideoMode(1080, 720), "Test", sf::Style::Default);
 	view = window.getView();
 
-	///// Ground /////
-	ground[0].setSize({ 1200.f,32.f });
-	ground[0].setPosition(0.f, 600.f);
-	ground[0].setFillColor(sf::Color::Green);
-
-	ground[1].setSize({ 200.f,32.f });
-	ground[1].setPosition(200.f, 400.f);
-	ground[1].setFillColor(sf::Color::Green);
-
-	ground[2].setSize({ 200,32 });
-	ground[2].setPosition(900, 568);
-	ground[2].setFillColor(sf::Color::Green);
-
-	ground[3].setSize({ 1600,32 });
-	ground[3].setPosition(1200, 632);
-	ground[3].setFillColor(sf::Color::Green);
-
-	ground[4].setSize({ 32,232 });
-	ground[4].setPosition(2800, 432);
-	ground[4].setFillColor(sf::Color::Green);
-
-	ground[5].setSize({ 2000,32 });
-	ground[5].setPosition(1500, 432);
-	ground[5].setFillColor(sf::Color::Green);
-
-	ground[6].setSize({ 100,32 });
-	ground[6].setPosition(0, 568);
-	ground[6].setFillColor(sf::Color::Green);
-	///// Ground /////
-
-	////// Load Texture /////
-	if (!playerTexture.loadFromFile("sprites/spritesheet.png"))
-	{
-		std::cout << "spritesheet Load failed " << std::endl;
-	}
-	if (!fishboneTexture.loadFromFile("sprites/fishbone.png"))
-	{
-		std::cout << "fishbone Load failed " << std::endl;
-	}
-	if (!attackTexture.loadFromFile("sprites/claw.png"))
-	{
-		std::cout << "claw Load failed " << std::endl;
-	}
-	if (!font.loadFromFile("fonts/#glidepath.ttf"))
-	{
-		std::cout << "fonts Load failed " << std::endl;
-	}
-	if (!stickTexture.loadFromFile("sprites/stick.png"))
-	{
-		std::cout << "stick Load failed " << std::endl;
-	}
-	////// Texture /////
-
-	////// Sprite /////
-	shapeSprite.setTexture(playerTexture);
-	shapeSprite.setTextureRect(sf::IntRect(32, 0, 32, 32));
-	shapeSprite.setPosition(spawn);
-
-	Bullet.setTexture(fishboneTexture);
-	Bullet.setTextureRect(sf::IntRect(0, 0, 12, 12));
-
-	attackSprite.setTexture(attackTexture);
-	////// Sprite /////
-
-	////// Text /////
-	textScore.setFont(font);
-	textScore.setFillColor(sf::Color::White);
-	textScore.setOutlineColor(sf::Color::Black);
-	textScore.setCharacterSize(45);
-	textScore.setStyle(sf::Text::Bold);
-
-	textFish.setFont(font);
-	textFish.setFillColor(sf::Color::White);
-	textFish.setOutlineColor(sf::Color::Black);
-	textFish.setCharacterSize(45);
-	textFish.setStyle(sf::Text::Bold);
-
-	textFishbone.setFont(font);
-	textFishbone.setFillColor(sf::Color::White);
-	textFishbone.setOutlineColor(sf::Color::Black);
-	textFishbone.setCharacterSize(45);
-	textFishbone.setStyle(sf::Text::Bold);
-
-	textHP.setFont(font);
-	textHP.setFillColor(sf::Color::White);
-	textHP.setOutlineColor(sf::Color::Black);
-	textHP.setCharacterSize(45);
-	textHP.setStyle(sf::Text::Bold);
-	////// Text /////
-	///// Monster /////
-	NBear[0].set(300, 368); // g1
-	NBear[1].set(200, 568); // g0
-	NBear[2].set(1000,536); // g2
-	NBear[3].set(1400,600); // g3
-	NBear[4].set(2500,600); // g3
-	NBear[5].set(2000,600); // g3
-	NBear[6].set(2250,600); // g3
-	NBear[7].set(1750,400); // g5
-	NBear[8].set(2000,400); // g5
-	NBear[9].set(2500, 400); // g5
-
-	TBear[0].set(1400, 600);
-	TBear[1].set(300, 368);
-	///// Monster /////
+	setGround1();
+	loadTexture();
+	setSprite();
+	firstTextSet();
+	setMonster1();
+	setFish1();
 
 	while (window.isOpen())
 	{
 		setText();
 		window.setView(view);
 		if(state == 0||state == 2)window.draw(shapeSprite);
-		window.draw(textHP);
 		window.draw(textScore);
+		window.draw(textFish);
+		window.draw(textFishbone);
+		window.draw(textHP);
 		endt = clock();
 		mainCharacter();
 		for (int i = 0; i < nb; i++)
@@ -383,15 +369,33 @@ int main()
 			scratch();
 			if (attack < 4)window.draw(attackSprite);
 		}
+		for (int i = 0; i < f; i++)
+		{
+			if(FISH[i].state == 1)window.draw(FISH[i].body);
+		}
+		for (int i = 0; i < fb; i++)
+		{
+			if (FISHBONE[i].state == 1)window.draw(FISHBONE[i].body);
+		}
 		for (int i = 0; i < g; i++)
 		{
 			window.draw(ground[i]);
 		}
 		damageCal();
+		collectFish();
 		window.display();
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape))
 		{
-			window.close();
+			while (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape));
+			while (1)
+			{
+				if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape))
+				{
+					while (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape));
+					window.close();
+					break;
+				}
+			}
 		}
 		window.clear();
 	}
@@ -437,8 +441,9 @@ void mainCharacter()
 			}
 		}
 	}
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::K) && bullet == 0)
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::K) && bullet == 0 && fishbone > 0)
 	{
+		fishbone--;
 		BH = RH;
 		bullet = 1;
 	}
@@ -693,20 +698,20 @@ void setText()
 	textScore.setString(tScore);
 	textScore.setPosition(view.getCenter().x - 510, 5);
 
-	/*tFish = "X ";
+	tFish = "X ";
 	tFish.insert(2, changeNtoS(fish, 2));
 	textFish.setString(tFish);
-	textFish.setPosition(view.getCenter().x + 280, 5);
+	textFish.setPosition(view.getCenter().x - 90 , 5);
 
 	tFishbone = "X ";
 	tFishbone.insert(2, changeNtoS(fishbone, 2));
 	textFishbone.setString(tFishbone);
-	textFishbone.setPosition(view.getCenter().x + 280, 5);*/
+	textFishbone.setPosition(view.getCenter().x + 100, 5);
 
 	tHP = "X ";
 	tHP.insert(2, changeNtoS(HP,2));
 	textHP.setString(tHP);
-	textHP.setPosition(view.getCenter().x+280,5);
+	textHP.setPosition(view.getCenter().x+290,5);
 }
 
 std::string changeNtoS(int num,int zero)
@@ -851,5 +856,143 @@ void scratch()
 	else if (dif > 0.025)
 	{
 		attackSprite.setTextureRect(sf::IntRect(78, 24, 48, 10));
+	}
+}
+
+void loadTexture()
+{
+	if (!playerTexture.loadFromFile("sprites/spritesheet.png"))
+	{
+		std::cout << "spritesheet Load failed " << std::endl;
+	}
+	if (!fishTexture.loadFromFile("sprites/fish.png"))
+	{
+		std::cout << "fish Load failed " << std::endl;
+	}
+	if (!fishboneTexture.loadFromFile("sprites/fishbone.png"))
+	{
+		std::cout << "fishbone Load failed " << std::endl;
+	}
+	if (!attackTexture.loadFromFile("sprites/claw.png"))
+	{
+		std::cout << "claw Load failed " << std::endl;
+	}
+	if (!font.loadFromFile("fonts/#glidepath.ttf"))
+	{
+		std::cout << "fonts Load failed " << std::endl;
+	}
+	if (!stickTexture.loadFromFile("sprites/stick.png"))
+	{
+		std::cout << "stick Load failed " << std::endl;
+	}
+}
+
+void setSprite()
+{
+	shapeSprite.setTexture(playerTexture);
+	shapeSprite.setTextureRect(sf::IntRect(32, 0, 32, 32));
+	shapeSprite.setPosition(spawn);
+
+	Bullet.setTexture(fishboneTexture);
+	Bullet.setTextureRect(sf::IntRect(0, 0, 12, 12));
+
+	attackSprite.setTexture(attackTexture);
+}
+
+void firstTextSet()
+{
+	textScore.setFont(font);
+	textScore.setFillColor(sf::Color::White);
+	textScore.setOutlineColor(sf::Color::Black);
+	textScore.setCharacterSize(40);
+	textScore.setStyle(sf::Text::Bold);
+
+	textFish.setFont(font);
+	textFish.setFillColor(sf::Color::White);
+	textFish.setOutlineColor(sf::Color::Black);
+	textFish.setCharacterSize(40);
+	textFish.setStyle(sf::Text::Bold);
+
+	textFishbone.setFont(font);
+	textFishbone.setFillColor(sf::Color::White);
+	textFishbone.setOutlineColor(sf::Color::Black);
+	textFishbone.setCharacterSize(40);
+	textFishbone.setStyle(sf::Text::Bold);
+
+	textHP.setFont(font);
+	textHP.setFillColor(sf::Color::White);
+	textHP.setOutlineColor(sf::Color::Black);
+	textHP.setCharacterSize(40);
+	textHP.setStyle(sf::Text::Bold);
+}
+
+void setGround1()
+{
+	ground[0].setSize({ 1200.f,32.f });
+	ground[0].setPosition(0.f, 600.f);
+	ground[0].setFillColor(sf::Color::Green);
+
+	ground[1].setSize({ 200.f,32.f });
+	ground[1].setPosition(200.f, 400.f);
+	ground[1].setFillColor(sf::Color::Green);
+
+	ground[2].setSize({ 200,32 });
+	ground[2].setPosition(900, 568);
+	ground[2].setFillColor(sf::Color::Green);
+
+	ground[3].setSize({ 1600,32 });
+	ground[3].setPosition(1200, 632);
+	ground[3].setFillColor(sf::Color::Green);
+
+	ground[4].setSize({ 32,232 });
+	ground[4].setPosition(2800, 432);
+	ground[4].setFillColor(sf::Color::Green);
+
+	ground[5].setSize({ 2000,32 });
+	ground[5].setPosition(1500, 432);
+	ground[5].setFillColor(sf::Color::Green);
+
+	ground[6].setSize({ 100,32 });
+	ground[6].setPosition(0, 568);
+	ground[6].setFillColor(sf::Color::Green);
+}
+
+void setMonster1()
+{
+	NBear[0].set(300, 368); // g1
+	NBear[1].set(200, 568); // g0
+	NBear[2].set(1000, 536); // g2
+	NBear[3].set(1400, 600); // g3
+	NBear[4].set(2500, 600); // g3
+	NBear[5].set(2000, 600); // g3
+	NBear[6].set(2250, 600); // g3
+	NBear[7].set(1750, 400); // g5
+	NBear[8].set(2000, 400); // g5
+	NBear[9].set(2500, 400); // g5
+}
+
+void setFish1()
+{
+	FISH[0].set(100, 400);
+}
+
+void collectFish()
+{
+	for (int i = 0; i < f; i++)
+	{
+		if (shapeSprite.getGlobalBounds().intersects(FISH[i].body.getGlobalBounds()))
+		{
+			score += 10;
+			FISH[i].re();
+			fish++;
+		}
+	}
+	for (int i = 0; i < fb; i++)
+	{
+		if (shapeSprite.getGlobalBounds().intersects(FISHBONE[i].body.getGlobalBounds()))
+		{
+			FISHBONE[i].re();
+			fishbone++;
+		}
 	}
 }

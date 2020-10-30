@@ -20,7 +20,7 @@ int bullet = 0; // bullet status
 int bx,endx,startx; // x of bullet,Highest x,Lowest of x 
 sf::Text textHP,textScore,textFish,textFishbone;
 sf::Font font;
-sf::Vector2f spawn = { 20, 300 }; // spawn point
+sf::Vector2f spawn = { 30, 450 }; // spawn point
 sf::Sprite shapeSprite; // main character
 sf::Sprite attackSprite;
 sf::RectangleShape ground[g]; // ground
@@ -305,6 +305,7 @@ int main()
 	sf::RenderWindow window(sf::VideoMode(1080, 720), "Test", sf::Style::Default);
 	view = window.getView();
 
+	shapeSprite.setPosition(spawn);
 	setGround1();
 	loadTexture();
 	setSprite();
@@ -973,7 +974,9 @@ void setMonster1()
 
 void setFish1()
 {
-	FISH[0].set(100, 400);
+	FISH[0].set(75, 400);
+	FISH[1].set(250, 250);
+	FISH[2].set(350, 250);
 }
 
 void collectFish()

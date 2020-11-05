@@ -4,16 +4,22 @@
 #include <string>
 
 const int g = 7, nb = 10, tb = 1; // number of ground , number of normal bear , number of throw bear
-const int f = 20, fb = 20; // number of fish , number of fishbone
-clock_t startt, endt,startAttack;
+const int f = 20, fb = 20, it = 10; // number of fish , number of fishbone , number of item
+const int ch = 10; // number of chest
+clock_t startt, endt,startAttack,startB;
+clock_t startP,startF; // start Potion, start fishbonecase
+bool potion = 0; // state of potion
+bool fishbonecase = 0; // state of fishbonecase
 int state = 0; // 1 = after recieve damage
 int attack = 0; // 0 = ready to attack, 1 = attack state , 2 = after attack
+int cItem = 0; // current item in bags 1.+HP 2.Potion 3.Fishbonecase
 int attackDamage = 5;
+int animation = 0,Ranimation = 0,Lanimation = 0;
 std::string tHP, tScore , tFish , tFishbone; // String of HP , Score , Fish , Fishbone
 int HP = 3; // Hit point
 int score = 0; 
 int fish = 0; // Fish
-int fishbone = 3; // Ammo
+int fishbone = 2; // Ammo
 bool gr = 0; // is sprite on the ground?  
 int RH = 1,BH,AH; // recent head of main character
 int bullet = 0; // bullet status
@@ -23,19 +29,24 @@ sf::Font font;
 sf::Vector2f spawn = { 30, 450 }; // spawn point
 sf::Sprite shapeSprite; // main character
 sf::Sprite attackSprite;
+sf::Sprite heart;
+sf::Sprite test;
+sf::Sprite fishForShow;
 sf::RectangleShape ground[g]; // ground
 sf::Sprite Bullet;
 sf::View view;
-sf::Texture playerTexture, fishboneTexture, attackTexture,stickTexture,fishTexture;
+sf::Texture playerTextureRight, playerTextureLeft, fishboneTexture, attackTexture,stickTexture,fishTexture,chestTexture,item1Texture, item2Texture, item3Texture;
+sf::Texture heartTexture,fishForShowTexture;
 float speed = 0; // use when jumping or falling
 bool down = 0, up = 0; // state of jumping
+double dif;
 
 class Fish
 {
 public:
 
 	int state = 0;
-	float width = 24, height = 24;
+	float width = 50, height = 24;
 	sf::Sprite body;
 	void re()
 	{
@@ -108,9 +119,10 @@ public:
 	}
 	void set(float x, float y)
 	{
+		head = (rand() % 2) + 1;
 		body.setSize({ width,height });
 		body.setFillColor(sf::Color::Red);
-		body.setPosition(x, y+0.0001);
+		body.setPosition(x, y - height +0.0001);
 		HP = 10;
 	}
 	void move() // walk left or right
@@ -208,7 +220,7 @@ public:
 		if (HP == 0) { stick.setTexture(stickTexture); }
 		body.setSize({ width,height });
 		body.setFillColor(sf::Color::Yellow);
-		body.setPosition(x, y + 0.0001);
+		body.setPosition(x, y - height + 0.0001);
 		HP = 20;
 	}
 	void move() // turn left or right
@@ -248,7 +260,7 @@ public:
 	}
 	void shot()
 	{
-		double dif = (double)(endt - start) / CLOCKS_PER_SEC;
+		dif = (double)(endt - start) / CLOCKS_PER_SEC;
 		if (th == 1)
 		{
 			stick.move(0.25, 0);
@@ -278,6 +290,116 @@ public:
 		stick.setTextureRect({ 0,0,0,0 });
 	}
 };
+class item
+{
+public:
+
+	int num;
+	int state = 0;
+	int air = 0;
+	float speed;
+	float width = 24, height = 24;
+	sf::Sprite body;
+	void re()
+	{
+		this->num = 0;
+		this->state = 0;
+		body.setTextureRect(sf::IntRect(0,0,0,0));
+		body.setPosition(-1, -1);
+	}
+	void set(float x, float y, int a)
+	{
+		this->num = a;
+		if (a == 1)
+		{
+			body.setTexture(item1Texture);
+		}
+		else if (a == 2)
+		{
+			body.setTexture(item2Texture);
+		}
+		else if (a == 3)
+		{
+			body.setTexture(item3Texture);
+		}
+		body.setTextureRect(sf::IntRect(0, 0, width, height));
+		body.setPosition(x,y);
+		this->state = 1;
+		this->air = 1;
+		this->speed = 0.3;
+	}
+	void move()
+	{
+		if (air == 1)
+		{
+			speed -= 0.0005;
+			body.move(.0f, -speed);
+			for (int i = 0; i < g; i++)
+			{
+				if (body.getGlobalBounds().intersects(ground[i].getGlobalBounds()))
+				{
+					if (body.getPosition().y > ground[i].getPosition().y)
+					{
+						body.move(.0f, speed);
+					}
+				}
+			}
+			if (speed <= 0)air = 2;
+		}
+		if (air == 2)
+		{
+			speed += 0.0005;
+			body.move(0.f, speed);
+			for (int i = 0; i < g; i++)
+			{
+				if (body.getGlobalBounds().intersects(ground[i].getGlobalBounds()))
+				{
+					if (body.getPosition().y > ground[i].getPosition().y)
+					{
+						body.move(0.f, -(body.getPosition().y - ground[i].getPosition().y));
+					}
+					air = 0;
+				}
+			}
+		}
+	}
+};
+item ITEM[it];
+class chest
+{
+public:
+
+	int state;
+	float width = 48, height = 42, difH = 6;
+	sf::Sprite body;
+	void set(float x, float y)
+	{
+		body.setTexture(chestTexture);
+		body.setTextureRect(sf::IntRect(0, 0, width, height));
+		this->state = 1;
+		body.setPosition(x, y-height);
+	}
+	void open()
+	{
+		if (state == 1)
+		{
+			int a = (rand() % 3) + 1;
+			std:: cout << a;
+			for (int i = 0; i < it; i++)
+			{
+				if (ITEM[i].state == 0)
+				{
+					ITEM[i].set(body.getPosition().x + ((width - ITEM[i].width) / 2), body.getPosition().y + 5, a);
+					break;
+				}
+			}
+			body.setTextureRect(sf::IntRect(0, height+difH, width, height));
+			this->state = 2;
+			fish += 20;
+			score += 200;
+		}
+	}
+};
 
 void mainCharacter();
 void damageCal();
@@ -293,13 +415,18 @@ void setGround1();
 void setMonster1();
 void setFish1();
 void collectFish();
+void setChest1();
+void use(int);
+void setHead();
 
 normalBear NBear[nb];
 throwBear TBear[tb];
 Fish FISH[f];
+chest CHEST[ch];
 
 int main()
 {
+	srand(time(NULL));
 	startx = 0;
 	endx = 5000;
 	sf::RenderWindow window(sf::VideoMode(1080, 720), "Test", sf::Style::Default);
@@ -312,18 +439,30 @@ int main()
 	firstTextSet();
 	setMonster1();
 	setFish1();
-
+	setChest1();
 	while (window.isOpen())
 	{
-		setText();
+		/*
+			test.setTexture(heartTexture); 
+			test.setTextureRect(sf::IntRect(0, 0, 64, 64));
+			test.setPosition(spawn);
+			window.draw(test);
+		//*/
+		setHead();
 		window.setView(view);
 		if(state == 0||state == 2)window.draw(shapeSprite);
 		window.draw(textScore);
 		window.draw(textFish);
 		window.draw(textFishbone);
 		window.draw(textHP);
+		window.draw(heart);
+		window.draw(fishForShow);
 		endt = clock();
 		mainCharacter();
+		for (int i = 0; i < ch; i++)
+		{
+			if (CHEST[i].state > 0)window.draw(CHEST[i].body);
+		}
 		for (int i = 0; i < nb; i++)
 		{
 			if (NBear[i].HP > 0)
@@ -370,6 +509,14 @@ int main()
 			scratch();
 			if (attack < 4)window.draw(attackSprite);
 		}
+		for (int i = 0; i < it; i++)
+		{
+			if (ITEM[i].state > 0)
+			{
+				window.draw(ITEM[i].body);
+				ITEM[i].move();
+			}
+		}
 		for (int i = 0; i < f; i++)
 		{
 			if(FISH[i].state == 1)window.draw(FISH[i].body);
@@ -405,8 +552,21 @@ int main()
 
 void mainCharacter()
 {
+	if (RH == 1) 
+	{
+		shapeSprite.setTexture(playerTextureRight);
+		shapeSprite.setTextureRect(sf::IntRect(36 + 39 * ((animation / 300) % 6), 22, 40, 54));
+	}
+	else
+	{
+		shapeSprite.setTexture(playerTextureLeft);
+		shapeSprite.setTextureRect(sf::IntRect(626 - 40 - (36 + 39 * ((animation / 300) % 6)), 22, 40, 54));
+	}
 	gr = 0;
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::A) && shapeSprite.getPosition().x > startx)
+	animation++;
+	Ranimation++;
+	Lanimation++;
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::A) && shapeSprite.getPosition().x > startx&&!sf::Keyboard::isKeyPressed(sf::Keyboard::D))
 	{
 		RH = 2;
 		shapeSprite.move(-0.18f, 0.f);
@@ -415,7 +575,7 @@ void mainCharacter()
 		{
 			if (shapeSprite.getGlobalBounds().intersects(ground[i].getGlobalBounds()))
 			{
-				if (shapeSprite.getPosition().y + 31 > ground[i].getPosition().y)
+				if (shapeSprite.getPosition().y + shapeSprite.getTextureRect().height - 1 > ground[i].getPosition().y)
 				{
 					shapeSprite.move(0.18f, 0.f);
 					if ((view.getCenter().x - shapeSprite.getPosition().x >= -16) && view.getCenter().x - 540 > startx)view.move(0.18, 0);
@@ -423,8 +583,10 @@ void mainCharacter()
 				}
 			}
 		}
+		shapeSprite.setTextureRect(sf::IntRect(626-39-(280 + 38 * ((Lanimation / 150) % 6)), 22, 39, 54));
+		Ranimation = animation = 0;
 	}
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)&&shapeSprite.getPosition().x+32<endx)
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)&&shapeSprite.getPosition().x+32<endx&& !sf::Keyboard::isKeyPressed(sf::Keyboard::A))
 	{
 		RH = 1;
 		shapeSprite.move(.18f, 0.f);
@@ -433,7 +595,7 @@ void mainCharacter()
 		{
 			if (shapeSprite.getGlobalBounds().intersects(ground[i].getGlobalBounds()))
 			{
-				if (shapeSprite.getPosition().y + 31 > ground[i].getPosition().y)
+				if (shapeSprite.getPosition().y + shapeSprite.getTextureRect().height-1 > ground[i].getPosition().y)
 				{
 					shapeSprite.move(-0.18f, 0.f);
 					if ((view.getCenter().x - shapeSprite.getPosition().x <= 16) && view.getCenter().x + 540 < endx)view.move(-18, 0);
@@ -441,10 +603,13 @@ void mainCharacter()
 				}
 			}
 		}
+		shapeSprite.setTextureRect(sf::IntRect(280 + 38 * ((Ranimation / 150) % 6), 22, 39, 54));
+		Lanimation = animation = 0;
 	}
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::K) && bullet == 0 && fishbone > 0)
+	if ((sf::Keyboard::isKeyPressed(sf::Keyboard::K) && bullet == 0 && fishbone > 0)||(fishbonecase && sf::Keyboard::isKeyPressed(sf::Keyboard::K)&&bullet == 0))
 	{
-		fishbone--;
+		startB = clock();
+		if(!fishbonecase)fishbone--;
 		BH = RH;
 		bullet = 1;
 	}
@@ -453,6 +618,55 @@ void mainCharacter()
 		AH = RH;
 		attack = 1;
 		startAttack = clock();
+	}
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::E))
+	{
+		bool s = 0;
+		while (1)
+		{
+			for (int i = 0; i < ch; i++)
+			{
+				if (shapeSprite.getGlobalBounds().intersects(CHEST[i].body.getGlobalBounds()) && CHEST[i].state == 1)
+				{
+					CHEST[i].open();
+					s = 1;
+					break;
+				}
+			}
+			if (s == 1)break;
+			for (int i = 0; i < it; i++)
+			{
+				if (shapeSprite.getGlobalBounds().intersects(ITEM[i].body.getGlobalBounds())&&ITEM[i].air != 1)
+				{
+					if (ITEM[i].num == 1)
+					{
+						use(1);
+					}
+					else
+					{
+						if (cItem == 0)
+						{
+							cItem = ITEM[i].num;
+						}
+						else
+						{
+							use(ITEM[i].num);
+						}
+					}
+					ITEM[i].re();
+					break;
+				}
+			}
+			break;
+		}
+	}
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::I))
+	{
+		if (cItem != 0)
+		{
+			use(cItem);
+			cItem = 0;
+		}
 	}
 	if ((sf::Keyboard::isKeyPressed(sf::Keyboard::W)) && !down && !up)
 	{
@@ -473,6 +687,8 @@ void mainCharacter()
 				}
 			}
 		}
+		if(RH == 1)shapeSprite.setTextureRect(sf::IntRect(330, 234, 40, 56));
+		else shapeSprite.setTextureRect(sf::IntRect(626-40-330, 234, 40, 56));
 		if (speed <= 0)up = 0;
 	}
 	for (int i = 0; i < g; i++)
@@ -505,190 +721,403 @@ void mainCharacter()
 				down = 0;
 			}
 		}
+		if (RH == 1)shapeSprite.setTextureRect(sf::IntRect(372, 236, 42, 55));
+		else shapeSprite.setTextureRect(sf::IntRect(626 - 42 - 372, 236, 42, 55));
 	}
+	if (bullet > 0)
+	{
+		dif = (double)(endt - startB) / CLOCKS_PER_SEC;
+		if (RH == 1)
+		{
+			if(dif <= 0.1) shapeSprite.setTextureRect(sf::IntRect(149, 94, 40, 54));
+			else if(dif <= 0.2) shapeSprite.setTextureRect(sf::IntRect(185, 94, 40, 54));
+			else if(dif <= 0.3) shapeSprite.setTextureRect(sf::IntRect(149, 94, 40, 54));
+		}
+		else
+		{
+			if (dif <= 0.1) shapeSprite.setTextureRect(sf::IntRect(626-40-149, 94, 40, 54));
+			else if (dif <= 0.2) shapeSprite.setTextureRect(sf::IntRect(626-40-185, 94, 40, 54));
+			else if (dif <= 0.3) shapeSprite.setTextureRect(sf::IntRect(626-40-149, 94, 40, 54));
+		}
+	}
+	if (attack > 0)
+	{
+		dif = double(endt - startAttack) / CLOCKS_PER_SEC;
+		if (RH == 1)
+		{
+			if (dif <= 0.1) shapeSprite.setTextureRect(sf::IntRect(149, 94, 40, 54));
+			else if (dif <= 0.2) shapeSprite.setTextureRect(sf::IntRect(185, 94, 40, 54));
+			else if (dif <= 0.3) shapeSprite.setTextureRect(sf::IntRect(454, 250, 40, 54));
+		}
+		else
+		{
+			if (dif <= 0.1) shapeSprite.setTextureRect(sf::IntRect(626 - 40 - 149, 94, 40, 54));
+			else if (dif <= 0.2) shapeSprite.setTextureRect(sf::IntRect(626 - 40 - 185, 94, 40, 54));
+			else if (dif <= 0.3) shapeSprite.setTextureRect(sf::IntRect(626 - 40 - 454, 250, 40, 54));
+		}
+	}
+	animation++;
 }
 
 void damageCal()
 {
-	if (state == 0)
+	if (potion == 0)
 	{
-		for (int i = 0; i < nb; i++)
+		if (state == 0)
 		{
-			if (shapeSprite.getGlobalBounds().intersects(NBear[i].body.getGlobalBounds()))
+			for (int i = 0; i < nb; i++)
 			{
-				startt = clock();
-				NBear[i].HP -= 5;
-				HP--;
+				if (shapeSprite.getGlobalBounds().intersects(NBear[i].body.getGlobalBounds()))
+				{
+					startt = clock();
+					NBear[i].HP -= 5;
+					HP--;
+					state = 1;
+					if (NBear[i].HP <= 0) score += 10;
+					break;
+				}
+			}
+			if (state == 0)
+			{
+				for (int i = 0; i < tb; i++)
+				{
+					if (shapeSprite.getGlobalBounds().intersects(TBear[i].body.getGlobalBounds()))
+					{
+						startt = clock();
+						TBear[i].HP -= 5;
+						HP--;
+						state = 1;
+						if (TBear[i].HP <= 0) score += 20;
+						break;
+					}
+				}
+			}
+			if (state == 0)
+			{
+				for (int i = 0; i < tb; i++)
+				{
+					if (shapeSprite.getGlobalBounds().intersects(TBear[i].stick.getGlobalBounds()))
+					{
+						startt = clock();
+						HP--;
+						state = 1;
+						TBear[i].reStick();
+						break;
+					}
+				}
+			}
+		}
+		else
+		{
+			dif = double(endt - startt) / CLOCKS_PER_SEC;
+			if (dif >= 2)
+			{
+				state = 0;
+			}
+			else if (dif >= 1.875)
+			{
+				state = 2;
+			}
+			else if (dif >= 1.75)
+			{
 				state = 1;
-				if (NBear[i].HP <= 0) score += 10;
-				break;
 			}
-		}
-		if (state == 0)
-		{
-			for (int i = 0; i < tb; i++)
+			else if (dif >= 1.625)
 			{
-				if (shapeSprite.getGlobalBounds().intersects(TBear[i].body.getGlobalBounds()))
-				{
-					startt = clock();
-					TBear[i].HP -= 5;
-					HP--;
-					state = 1;
-					if (TBear[i].HP <= 0) score += 20;
-					break;
-				}
+				state = 2;
 			}
-		}
-		if (state == 0)
-		{
-			for (int i = 0; i < tb; i++)
+			else if (dif >= 1.5)
 			{
-				if (shapeSprite.getGlobalBounds().intersects(TBear[i].stick.getGlobalBounds()))
-				{
-					startt = clock();
-					HP--;
-					state = 1;
-					TBear[i].reStick();
-					break;
-				}
+				state = 1;
+			}
+			else if (dif >= 1.375)
+			{
+				state = 2;
+			}
+			else if (dif >= 1.25)
+			{
+				state = 1;
+			}
+			else if (dif >= 1.125)
+			{
+				state = 2;
+			}
+			else if (dif >= 1)
+			{
+				state = 1;
+			}
+			else if (dif >= 0.875)
+			{
+				state = 2;
+			}
+			else if (dif >= 0.75)
+			{
+				state = 1;
+			}
+			else if (dif >= 0.625)
+			{
+				state = 2;
+			}
+			else if (dif >= 0.5)
+			{
+				state = 1;
+			}
+			else if (dif >= 0.375)
+			{
+				state = 2;
+			}
+			else if (dif >= 0.25)
+			{
+				state = 1;
+			}
+			else if (dif >= 0.125)
+			{
+				state = 2;
 			}
 		}
 	}
 	else
 	{
-		double dif = double(endt - startt) / CLOCKS_PER_SEC;
-		if (dif >= 2)
+		if (state == 0)
 		{
-			state = 0;
+			for (int i = 0; i < nb; i++)
+			{
+				if (shapeSprite.getGlobalBounds().intersects(NBear[i].body.getGlobalBounds()))
+				{
+					startt = clock();
+					NBear[i].HP -= 5;
+					state = 1;
+					if (NBear[i].HP <= 0) score += 10;
+					break;
+				}
+			}
+			if (state == 0)
+			{
+				for (int i = 0; i < tb; i++)
+				{
+					if (shapeSprite.getGlobalBounds().intersects(TBear[i].body.getGlobalBounds()))
+					{
+						startt = clock();
+						TBear[i].HP -= 5;
+						state = 1;
+						if (TBear[i].HP <= 0) score += 20;
+						break;
+					}
+				}
+			}
+			if (state == 0)
+			{
+				for (int i = 0; i < tb; i++)
+				{
+					if (shapeSprite.getGlobalBounds().intersects(TBear[i].stick.getGlobalBounds()))
+					{
+						startt = clock();
+						TBear[i].reStick();
+						break;
+					}
+				}
+			}
 		}
-		else if (dif >= 1.875)
+		else
 		{
-			state = 2;
+			dif = double(endt - startt) / CLOCKS_PER_SEC;
+			if (dif >= 1.5)
+			{
+				state = 0;
+			}
+			else if (dif >= 1.375)
+			{
+				state = 2;
+			}
+			else if (dif >= 1.25)
+			{
+				state = 1;
+			}
+			else if (dif >= 1.125)
+			{
+				state = 2;
+			}
+			else if (dif >= 1)
+			{
+				state = 1;
+			}
+			else if (dif >= 0.875)
+			{
+				state = 2;
+			}
+			else if (dif >= 0.75)
+			{
+				state = 1;
+			}
+			else if (dif >= 0.625)
+			{
+				state = 2;
+			}
+			else if (dif >= 0.5)
+			{
+				state = 1;
+			}
+			else if (dif >= 0.375)
+			{
+				state = 2;
+			}
+			else if (dif >= 0.25)
+			{
+				state = 1;
+			}
+			else if (dif >= 0.125)
+			{
+				state = 2;
+			}
 		}
-		else if (dif >= 1.75)
+		dif = (double)(endt - startP) / CLOCKS_PER_SEC;
+		if (dif >= 9)
 		{
+			potion = 0;
+			startt = clock();
 			state = 1;
-		}
-		else if (dif >= 1.625)
-		{
-			state = 2;
-		}
-		else if (dif >= 1.5)
-		{
-			state = 1;
-		}
-		else if (dif >= 1.375)
-		{
-			state = 2;
-		}
-		else if (dif >= 1.25)
-		{
-			state = 1;
-		}
-		else if (dif >= 1.125)
-		{
-			state = 2;
-		}
-		else if (dif >= 1)
-		{
-			state = 1;
-		}
-		else if (dif >= 0.875)
-		{
-			state = 2;
-		}
-		else if (dif >= 0.75)
-		{
-			state = 1;
-		}
-		else if (dif >= 0.625)
-		{
-			state = 2;
-		}
-		else if (dif >= 0.5)
-		{
-			state = 1;
-		}
-		else if (dif >= 0.375)
-		{
-			state = 2;
-		}
-		else if (dif >= 0.25)
-		{
-			state = 1;
-		}
-		else if (dif >= 0.125)
-		{
-			state = 2;
+			startt -= CLOCKS_PER_SEC;
 		}
 	}
 }
 
 void shoot()
 {
-	if (bullet == 1)
+	if (fishbonecase == 0)
 	{
-		bullet = 2;
+		if (bullet == 1)
+		{
+			bullet = 2;
+			if (BH == 1)
+			{
+				Bullet.setPosition(shapeSprite.getPosition().x + 35, shapeSprite.getPosition().y + 10);
+				bx = shapeSprite.getPosition().x + 35;
+			}
+			else
+			{
+				Bullet.setPosition(shapeSprite.getPosition().x - 15, shapeSprite.getPosition().y + 10);
+				bx = shapeSprite.getPosition().x - 15;
+			}
+		}
 		if (BH == 1)
 		{
-			Bullet.setPosition(shapeSprite.getPosition().x+35, shapeSprite.getPosition().y+10);
-			bx = shapeSprite.getPosition().x + 35;
+			Bullet.move(0.25, 0);
 		}
 		else
 		{
-			Bullet.setPosition(shapeSprite.getPosition().x - 15, shapeSprite.getPosition().y + 10);
-			bx = shapeSprite.getPosition().x - 15;
+			Bullet.move(-0.25, 0);
 		}
-	}
-	if (BH == 1)
-	{
-		Bullet.move(0.25, 0);
+		if (bullet == 2)
+		{
+			for (int i = 0; i < nb; i++)
+			{
+				if (Bullet.getGlobalBounds().intersects(NBear[i].body.getGlobalBounds()))
+				{
+					bullet = 3;
+					NBear[i].HP -= 10;
+					if (NBear[i].HP <= 0) score += 10;
+					break;
+				}
+			}
+			if (bullet == 2)
+			{
+				for (int i = 0; i < tb; i++)
+				{
+					if (Bullet.getGlobalBounds().intersects(TBear[i].body.getGlobalBounds()))
+					{
+						bullet = 3;
+						TBear[i].HP -= 10;
+						if (TBear[i].HP <= 0) score += 20;
+						break;
+					}
+				}
+			}
+			if (bullet == 2)
+			{
+				for (int i = 0; i < g; i++)
+				{
+					if (Bullet.getGlobalBounds().intersects(ground[i].getGlobalBounds()))
+					{
+						bullet = 3;
+						break;
+					}
+				}
+			}
+		}
+		if (Bullet.getPosition().x - bx > 600 || Bullet.getPosition().x - bx < -600)
+		{
+			bullet = 0;
+			Bullet.setPosition(-1, -1);
+		}
 	}
 	else
 	{
-		Bullet.move(-0.25, 0);
-	}
-	if (bullet == 2)
-	{
-		for (int i = 0; i < nb; i++)
+		dif = (double)(endt - startF) / CLOCKS_PER_SEC;
+		if (dif >= 10) fishbonecase = 0;
+		if (bullet == 1)
 		{
-			if (Bullet.getGlobalBounds().intersects(NBear[i].body.getGlobalBounds()))
+			bullet = 2;
+			if (BH == 1)
 			{
-				bullet = 3;
-				NBear[i].HP-=10;
-				if (NBear[i].HP <= 0) score += 10;
-				break;
+				Bullet.setPosition(shapeSprite.getPosition().x + 35, shapeSprite.getPosition().y + 10);
+				bx = shapeSprite.getPosition().x + 35;
 			}
+			else
+			{
+				Bullet.setPosition(shapeSprite.getPosition().x - 15, shapeSprite.getPosition().y + 10);
+				bx = shapeSprite.getPosition().x - 15;
+			}
+		}
+		if (BH == 1)
+		{
+			Bullet.move(0.25, 0);
+		}
+		else
+		{
+			Bullet.move(-0.25, 0);
 		}
 		if (bullet == 2)
 		{
-			for (int i = 0; i < tb; i++)
+			for (int i = 0; i < nb; i++)
 			{
-				if (Bullet.getGlobalBounds().intersects(TBear[i].body.getGlobalBounds()))
+				if (Bullet.getGlobalBounds().intersects(NBear[i].body.getGlobalBounds()))
 				{
 					bullet = 3;
-					TBear[i].HP -= 10;
-					if (TBear[i].HP <= 0) score += 20;
+					NBear[i].HP -= 10;
+					if (NBear[i].HP <= 0) score += 10;
 					break;
 				}
 			}
+			if (bullet == 2)
+			{
+				for (int i = 0; i < tb; i++)
+				{
+					if (Bullet.getGlobalBounds().intersects(TBear[i].body.getGlobalBounds()))
+					{
+						bullet = 3;
+						TBear[i].HP -= 10;
+						if (TBear[i].HP <= 0) score += 20;
+						break;
+					}
+				}
+			}
+			if (bullet == 2)
+			{
+				for (int i = 0; i < g; i++)
+				{
+					if (Bullet.getGlobalBounds().intersects(ground[i].getGlobalBounds()))
+					{
+						bullet = 3;
+						break;
+					}
+				}
+			}
 		}
-		if (bullet == 2)
+		if (Bullet.getPosition().x - bx > 600 || Bullet.getPosition().x - bx < -600)
 		{
-			for (int i = 0; i < g; i++)
-			{
-				if (Bullet.getGlobalBounds().intersects(ground[i].getGlobalBounds()))
-				{
-					bullet = 3;
-					break;
-				}
-			}
+			bullet = 0;
+			Bullet.setPosition(-1, -1);
 		}
-	}
-	if (Bullet.getPosition().x - bx > 600 || Bullet.getPosition().x - bx < -600)
-	{
-		bullet = 0;
-		Bullet.setPosition(-1, -1);
 	}
 }
 
@@ -705,12 +1134,55 @@ void setText()
 	textFish.setPosition(view.getCenter().x - 90 , 5);
 
 	tFishbone = "X ";
-	tFishbone.insert(2, changeNtoS(fishbone, 2));
+	if(fishbonecase == 0)tFishbone.insert(2, changeNtoS(fishbone, 2));
+	else
+	{
+		dif = (double)(endt - startF) / CLOCKS_PER_SEC;
+		if (dif >= 9.9) { tFishbone.insert(2, changeNtoS(fishbone, 2)); }
+		else if (dif >= 9.625) {}
+		else if (dif >= 9.5) { tFishbone.insert(2, changeNtoS(99, 2)); }
+		else if (dif >= 9.375) {}
+		else if (dif >= 9.25) { tFishbone.insert(2, changeNtoS(99, 2)); }
+		else if (dif >= 9.125) {}
+		else if (dif >= 9) { tFishbone.insert(2, changeNtoS(99, 2)); }
+		else if (dif >= 8.75) {}
+		else if (dif >= 8.5) { tFishbone.insert(2, changeNtoS(99, 2)); }
+		else if (dif >= 8.25) {}
+		else if (dif >= 8) { tFishbone.insert(2, changeNtoS(99, 2)); }
+		else if (dif >= 7.5) {}
+		else if (dif >= 7) { tFishbone.insert(2, changeNtoS(99, 2)); }
+		else if (dif >= 6) {}
+		else
+		{
+			tFishbone.insert(2, changeNtoS(99, 2));
+		}
+	}
 	textFishbone.setString(tFishbone);
 	textFishbone.setPosition(view.getCenter().x + 100, 5);
 
 	tHP = "X ";
-	tHP.insert(2, changeNtoS(HP,2));
+	if(potion == 0)tHP.insert(2, changeNtoS(HP,2));
+	else
+	{
+		dif = (double)(endt - startP) / CLOCKS_PER_SEC;
+		if (dif >= 8.625) {}
+		else if (dif >= 8.5) { tHP.insert(2, changeNtoS(99, 2)); }
+		else if (dif >= 8.375) {}
+		else if (dif >= 8.25) { tHP.insert(2, changeNtoS(99, 2)); }
+		else if (dif >= 8.125) {}
+		else if (dif >= 8) { tHP.insert(2, changeNtoS(99, 2)); }
+		else if (dif >= 7.75) {}
+		else if (dif >= 7.5) { tHP.insert(2, changeNtoS(99, 2)); }
+		else if (dif >= 7.25) {}
+		else if (dif >= 7) { tHP.insert(2, changeNtoS(99, 2)); }
+		else if (dif >= 6.5) {}
+		else if (dif >= 6) { tHP.insert(2, changeNtoS(99, 2)); }
+		else if (dif >= 5) {}
+		else
+		{
+			tHP.insert(2, changeNtoS(99, 2));
+		}
+	}
 	textHP.setString(tHP);
 	textHP.setPosition(view.getCenter().x+290,5);
 }
@@ -732,17 +1204,17 @@ std::string changeNtoS(int num,int zero)
 
 void scratch()
 {
-	double dif = double(endt - startAttack) / CLOCKS_PER_SEC;
+	dif = double(endt - startAttack) / CLOCKS_PER_SEC;
 	if (attack == 1)
 	{
 		attack = 2;
 		if (AH == 1)
 		{
-			attackSprite.setPosition(shapeSprite.getPosition().x + 35 , shapeSprite.getPosition().y-24);
+			attackSprite.setPosition(shapeSprite.getPosition().x + 35 , shapeSprite.getPosition().y-12);
 		}
 		else
 		{
-			attackSprite.setPosition(shapeSprite.getPosition().x - 51, shapeSprite.getPosition().y-24);
+			attackSprite.setPosition(shapeSprite.getPosition().x - 51, shapeSprite.getPosition().y-12);
 		}
 		attackSprite.setTextureRect(sf::IntRect(78, 24, 48, 0));
 	}
@@ -757,6 +1229,7 @@ void scratch()
 				NBear[i].HP -= attackDamage;
 				if (AH == 1)
 				{
+					NBear[i].head = 2;
 					for (int j = 0; j < g; j++)
 					{
 						if (NBear[i].body.getGlobalBounds().intersects(ground[j].getGlobalBounds()))
@@ -780,6 +1253,7 @@ void scratch()
 				}
 				else
 				{
+					NBear[i].head = 1;
 					for (int j = 0; j < g; j++)
 					{
 						if (NBear[i].body.getGlobalBounds().intersects(ground[j].getGlobalBounds()))
@@ -862,11 +1336,15 @@ void scratch()
 
 void loadTexture()
 {
-	if (!playerTexture.loadFromFile("sprites/spritesheet.png"))
+	if (!playerTextureRight.loadFromFile("sprites/catRight.png"))
 	{
-		std::cout << "spritesheet Load failed " << std::endl;
+		std::cout << "Right Load failed " << std::endl;
 	}
-	if (!fishTexture.loadFromFile("sprites/fish.png"))
+	if (!playerTextureLeft.loadFromFile("sprites/catLeft.png"))
+	{
+		std::cout << "Left Load failed " << std::endl;
+	}
+	if (!fishTexture.loadFromFile("assets/fish24.png"))
 	{
 		std::cout << "fish Load failed " << std::endl;
 	}
@@ -874,7 +1352,7 @@ void loadTexture()
 	{
 		std::cout << "fishbone Load failed " << std::endl;
 	}
-	if (!attackTexture.loadFromFile("sprites/claw.png"))
+	if (!attackTexture.loadFromFile("effects/claw.png"))
 	{
 		std::cout << "claw Load failed " << std::endl;
 	}
@@ -886,18 +1364,47 @@ void loadTexture()
 	{
 		std::cout << "stick Load failed " << std::endl;
 	}
+	if (!item1Texture.loadFromFile("sprites/item1.png"))
+	{
+		std::cout << "item1 Load failed " << std::endl;
+	}
+	if (!item2Texture.loadFromFile("sprites/item2.png"))
+	{
+		std::cout << "item2 Load failed " << std::endl;
+	}
+	if (!item3Texture.loadFromFile("sprites/item3.png"))
+	{
+		std::cout << "item3 Load failed " << std::endl;
+	}
+	if (!chestTexture.loadFromFile("assets/chest.png"))
+	{
+		std::cout << "chest Load failed " << std::endl;
+	}
+	if (!heartTexture.loadFromFile("assets/heart48.png"))
+	{
+		std::cout << "heart Load failed " << std::endl;
+	}
+	if (!fishForShowTexture.loadFromFile("assets/fishforshow.png"))
+	{
+		std::cout << "FFF Load failed " << std::endl;
+	}
 }
 
 void setSprite()
 {
-	shapeSprite.setTexture(playerTexture);
-	shapeSprite.setTextureRect(sf::IntRect(32, 0, 32, 32));
+	shapeSprite.setTexture(playerTextureRight);
 	shapeSprite.setPosition(spawn);
 
 	Bullet.setTexture(fishboneTexture);
 	Bullet.setTextureRect(sf::IntRect(0, 0, 12, 12));
 
 	attackSprite.setTexture(attackTexture);
+
+	heart.setTexture(heartTexture);
+	heart.setTextureRect(sf::IntRect(0,0,48,48));
+
+	fishForShow.setTexture(fishForShowTexture);
+	fishForShow.setTextureRect(sf::IntRect(0, 0, 48, 51));
 }
 
 void firstTextSet()
@@ -933,7 +1440,7 @@ void setGround1()
 	ground[0].setPosition(0.f, 600.f);
 	ground[0].setFillColor(sf::Color::Green);
 
-	ground[1].setSize({ 200.f,32.f });
+	ground[1].setSize({ 300.f,32.f });
 	ground[1].setPosition(200.f, 400.f);
 	ground[1].setFillColor(sf::Color::Green);
 
@@ -960,16 +1467,17 @@ void setGround1()
 
 void setMonster1()
 {
-	NBear[0].set(300, 368); // g1
-	NBear[1].set(200, 568); // g0
-	NBear[2].set(1000, 536); // g2
-	NBear[3].set(1400, 600); // g3
-	NBear[4].set(2500, 600); // g3
-	NBear[5].set(2000, 600); // g3
-	NBear[6].set(2250, 600); // g3
-	NBear[7].set(1750, 400); // g5
-	NBear[8].set(2000, 400); // g5
-	NBear[9].set(2500, 400); // g5
+	NBear[0].set(300, 400); // g1
+	NBear[1].set(200, 600); // g0
+	NBear[2].set(1000, 568); // g2
+	NBear[3].set(1400, 632); // g3
+	NBear[4].set(2500, 632); // g3
+	NBear[5].set(2000, 632); // g3
+	NBear[6].set(2250, 632); // g3
+	NBear[7].set(1750, 432); // g5
+	NBear[8].set(2000, 432); // g5
+	NBear[9].set(2500, 432); // g5
+
 }
 
 void setFish1()
@@ -998,4 +1506,34 @@ void collectFish()
 			fishbone++;
 		}
 	}
+}
+
+void setChest1()
+{
+	CHEST[0].set(2700, 632);
+}
+
+void use(int n)
+{
+	if (n == 1)
+	{
+		HP += 1;
+	}
+	else if (n == 2)
+	{
+		potion = 1;
+		startP = clock();
+	}
+	else if (n == 3)
+	{
+		fishbonecase = 1;
+		startF = clock();
+	}
+}
+
+void setHead()
+{
+	heart.setPosition(view.getCenter().x + 235, 8);
+	fishForShow.setPosition(view.getCenter().x - 145, 9);
+	setText();
 }

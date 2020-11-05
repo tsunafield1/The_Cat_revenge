@@ -5,9 +5,9 @@
 
 const int g = 7, nb = 10, tb = 1; // number of ground , number of normal bear , number of throw bear
 const int f = 20, fb = 20, it = 10; // number of fish , number of fishbone , number of item
-const int ch = 10; // number of chest
-clock_t startt, endt,startAttack,startB;
-clock_t startP,startF; // start Potion, start fishbonecase
+const int ch = 1; // number of chest
+double startt, endt,startAttack,startB,dif;
+double startP,startF; // start Potion, start fishbonecase
 bool potion = 0; // state of potion
 bool fishbonecase = 0; // state of fishbonecase
 int state = 0; // 1 = after recieve damage
@@ -39,7 +39,6 @@ sf::Texture playerTextureRight, playerTextureLeft, fishboneTexture, attackTextur
 sf::Texture heartTexture,fishForShowTexture;
 double speed = 0; // use when jumping or falling
 bool down = 0, up = 0; // state of jumping
-double dif;
 
 class Fish
 {
@@ -726,7 +725,7 @@ void mainCharacter()
 	}
 	if (bullet > 0)
 	{
-		dif = ((double)endt - (double)startB) / CLOCKS_PER_SEC;
+		dif = (endt - startB) / CLOCKS_PER_SEC;
 		if (RH == 1)
 		{
 			if(dif <= 0.1) shapeSprite.setTextureRect(sf::IntRect(149, 94, 40, 54));
@@ -742,7 +741,7 @@ void mainCharacter()
 	}
 	if (attack > 0)
 	{
-		dif = ((double)endt - (double)startAttack) / CLOCKS_PER_SEC;
+		dif = (endt - startAttack) / CLOCKS_PER_SEC;
 		if (RH == 1)
 		{
 			if (dif <= 0.1) shapeSprite.setTextureRect(sf::IntRect(149, 94, 40, 54));
@@ -809,7 +808,7 @@ void damageCal()
 		}
 		else
 		{
-			dif = ((double)endt - (double)startt) / CLOCKS_PER_SEC;
+			dif = (endt - startt) / CLOCKS_PER_SEC;
 			if (dif >= 2)
 			{
 				state = 0;
@@ -920,7 +919,7 @@ void damageCal()
 		}
 		else
 		{
-			dif = ((double)endt - (double)startt) / CLOCKS_PER_SEC;
+			dif = (endt - startt) / CLOCKS_PER_SEC;
 			if (dif >= 1.5)
 			{
 				state = 0;
@@ -970,7 +969,7 @@ void damageCal()
 				state = 2;
 			}
 		}
-		dif = ((double)endt - (double)startP) / CLOCKS_PER_SEC;
+		dif = (endt - startP) / CLOCKS_PER_SEC;
 		if (dif >= 9)
 		{
 			potion = 0;
@@ -1052,7 +1051,7 @@ void shoot()
 	}
 	else
 	{
-		dif = ((double)endt - (double)startF) / CLOCKS_PER_SEC;
+		dif = (endt - startF) / CLOCKS_PER_SEC;
 		if (dif >= 10) fishbonecase = 0;
 		if (bullet == 1)
 		{
@@ -1137,7 +1136,7 @@ void setText()
 	if(fishbonecase == 0)tFishbone.insert(2, changeNtoS(fishbone, 2));
 	else
 	{
-		dif = ((double)endt - (double)startF) / CLOCKS_PER_SEC;
+		dif = (endt - startF) / CLOCKS_PER_SEC;
 		if (dif >= 9.9) { tFishbone.insert(2, changeNtoS(fishbone, 2)); }
 		else if (dif >= 9.625) {}
 		else if (dif >= 9.5) { tFishbone.insert(2, changeNtoS(99, 2)); }
@@ -1164,7 +1163,7 @@ void setText()
 	if(potion == 0)tHP.insert(2, changeNtoS(HP,2));
 	else
 	{
-		dif = ((double)endt - (double)startP) / CLOCKS_PER_SEC;
+		dif = (endt - startP) / CLOCKS_PER_SEC;
 		if (dif >= 8.625) {}
 		else if (dif >= 8.5) { tHP.insert(2, changeNtoS(99, 2)); }
 		else if (dif >= 8.375) {}
@@ -1204,7 +1203,7 @@ std::string changeNtoS(int num,int zero)
 
 void scratch()
 {
-	dif = ((double)endt - (double)startAttack) / CLOCKS_PER_SEC;
+	dif = (endt - startAttack) / CLOCKS_PER_SEC;
 	if (attack == 1)
 	{
 		attack = 2;

@@ -441,6 +441,8 @@ int main()
 	setChest1();
 	while (window.isOpen())
 	{
+		sf::Event event;
+		if (window.pollEvent(event)) {}
 		/*
 			test.setTexture(heartTexture); 
 			test.setTextureRect(sf::IntRect(0, 0, 64, 64));
@@ -554,12 +556,12 @@ void mainCharacter()
 	if (RH == 1) 
 	{
 		shapeSprite.setTexture(playerTextureRight);
-		shapeSprite.setTextureRect(sf::IntRect(36 + 39 * ((animation / 300) % 6), 22, 40, 54));
+		shapeSprite.setTextureRect(sf::IntRect(36 + 39 * ((animation / 150) % 6), 22, 40, 54));
 	}
 	else
 	{
 		shapeSprite.setTexture(playerTextureLeft);
-		shapeSprite.setTextureRect(sf::IntRect(626 - 40 - (36 + 39 * ((animation / 300) % 6)), 22, 40, 54));
+		shapeSprite.setTextureRect(sf::IntRect(626 - 40 - (36 + 39 * ((animation / 150) % 6)), 22, 40, 54));
 	}
 	gr = 0;
 	animation++;
@@ -582,7 +584,7 @@ void mainCharacter()
 				}
 			}
 		}
-		shapeSprite.setTextureRect(sf::IntRect(626-39-(280 + 38 * ((Lanimation / 150) % 6)), 22, 39, 54));
+		shapeSprite.setTextureRect(sf::IntRect(626-39-(280 + 38 * ((Lanimation / 100) % 6)), 22, 39, 54));
 		Ranimation = animation = 0;
 	}
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)&&shapeSprite.getPosition().x+32<endx&& !sf::Keyboard::isKeyPressed(sf::Keyboard::A))
@@ -602,7 +604,7 @@ void mainCharacter()
 				}
 			}
 		}
-		shapeSprite.setTextureRect(sf::IntRect(280 + 38 * ((Ranimation / 150) % 6), 22, 39, 54));
+		shapeSprite.setTextureRect(sf::IntRect(280 + 38 * ((Ranimation / 100) % 6), 22, 39, 54));
 		Lanimation = animation = 0;
 	}
 	if ((sf::Keyboard::isKeyPressed(sf::Keyboard::K) && bullet == 0 && fishbone > 0)||(fishbonecase && sf::Keyboard::isKeyPressed(sf::Keyboard::K)&&bullet == 0))
@@ -1213,7 +1215,7 @@ void scratch()
 		}
 		else
 		{
-			attackSprite.setPosition(shapeSprite.getPosition().x - 51, shapeSprite.getPosition().y-12);
+			attackSprite.setPosition(shapeSprite.getPosition().x - 38, shapeSprite.getPosition().y-12);
 		}
 		attackSprite.setTextureRect(sf::IntRect(78, 24, 48, 0));
 	}

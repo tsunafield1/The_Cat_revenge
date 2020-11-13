@@ -5,7 +5,7 @@
 
 const int g = 7, nb = 10, tb = 1; // number of ground , number of normal bear , number of throw bear
 const int f = 20, fb = 20, it = 10; // number of fish , number of fishbone , number of item
-const int ch = 1; // number of chest
+const int ch = 2; // number of chest
 double startt, endt,startAttack,startB,dif;
 double startP,startF; // start Potion, start fishbonecase
 bool potion = 0; // state of potion
@@ -31,12 +31,13 @@ sf::Sprite shapeSprite; // main character
 sf::Sprite attackSprite;
 sf::Sprite heart;
 sf::Sprite test;
-sf::Sprite fishForShow;
+sf::Sprite inventory1,inventory2,item2,item3;
+sf::Sprite fishForShow,fishboneForShow;
 sf::RectangleShape ground[g]; // ground
 sf::Sprite Bullet;
 sf::View view;
 sf::Texture playerTextureRight, playerTextureLeft, fishboneTexture, attackTexture,stickTexture,fishTexture,chestTexture,item1Texture, item2Texture, item3Texture;
-sf::Texture heartTexture,fishForShowTexture,normalBearTexture,throwBearTexture;
+sf::Texture heartTexture,fishForShowTexture, fishboneForShowTexture,normalBearTexture,throwBearTexture,fishboneDropTexture,inventoryTexture;
 double speed = 0; // use when jumping or falling
 bool down = 0, up = 0; // state of jumping
 
@@ -51,7 +52,7 @@ public:
 	{
 		this->state = 2;
 		body.setTextureRect(sf::IntRect(0, 0, 0, 0));
-		body.setPosition(0, 0);
+		body.setPosition(-100, -100);
 	}
 	void set(float x, float y)
 	{
@@ -69,19 +70,19 @@ class Fishbone
 public:
 
 	int state = 0;
-	float width = 24, height = 24;
+	float width = 32, height = 34;
 	sf::Sprite body;
 	void re()
 	{
 		this->state = 2;
 		body.setTextureRect(sf::IntRect(0, 0, 0, 0));
-		body.setPosition(0, 0);
+		body.setPosition(-100, -100);
 	}
 	void set(float x, float y)
 	{
 		if (state == 0)
 		{
-			body.setTexture(fishboneTexture);
+			body.setTexture(fishboneDropTexture);
 			body.setTextureRect(sf::IntRect(0, 0, width, height));
 		}
 		this->state = 1;
@@ -94,7 +95,7 @@ class normalBear
 public:
 
 	int head = 2;  // 1 = Right , 2 = Left
-	int HP;
+	int HP= -50;
 	int animation;
 	float width = 24, height = 41;
 	int on;  // which ground that body stay
@@ -113,7 +114,7 @@ public:
 				}
 			}
 		}
-		body.setPosition(-1, -1);
+		body.setPosition(-100, -100);
 		this->HP = -50;
 	}
 	void set(float x, float y)
@@ -192,7 +193,7 @@ public:
 	clock_t start = 0;
 	int sx;
 	int head; // 1 = Right , 2 = Left
-	int HP = 0;
+	int HP = -50;
 	int th = 0;
 	int animation = 0;
 	float width = 27, height = 54;
@@ -211,15 +212,15 @@ public:
 					break;
 				}
 			}
-		}
-		body.setPosition(-1, -1);
-		stick.setPosition(-1, -1);
+		}	
+		body.setPosition(-100, -100);
+		stick.setPosition(-100, -100);
 		stick.setTextureRect({ 0,0,0,0 });
 		this->HP = -50;
 	}
 	void set(float x, float y)
 	{
-		if (HP == 0) { stick.setTexture(stickTexture);
+		if (HP == -50) { stick.setTexture(stickTexture);
 		body.setTexture(throwBearTexture);
 		}
 		body.setPosition(x, y - height + 0.0001);
@@ -245,8 +246,8 @@ public:
 			if (body.getPosition().x - shapeSprite.getPosition().x < 1000)
 			{
 				animation = 0;
-				stick.setTextureRect({ 0,0,16,16 });
-				stick.setPosition(body.getPosition().x+width+3,body.getPosition().y+(height/2) - 10);
+				stick.setTextureRect(sf::IntRect(0, 0, 30, 24));
+				stick.setPosition(body.getPosition().x+width+3,body.getPosition().y +14);
 				sx = stick.getPosition().x;
 				th = -1;
 				start = clock();
@@ -257,8 +258,8 @@ public:
 			if (body.getPosition().x - shapeSprite.getPosition().x > -1000)
 			{
 				animation = 0;
-				stick.setTextureRect({ 0,0,16,16 });
-				stick.setPosition(body.getPosition().x-stick.getScale().x+3, body.getPosition().y + (height / 2) - 10);
+				stick.setTextureRect(sf::IntRect(0, 0, 30, 24));
+				stick.setPosition(body.getPosition().x-30-3, body.getPosition().y +14);
 				sx = stick.getPosition().x;
 				th = -2;
 				start = clock();
@@ -287,16 +288,38 @@ public:
 			}
 		}
 	}
+	void stickSet(int a)
+	{
+		if (a == 0)
+		{
+			stick.setTextureRect(sf::IntRect(0, 0, 30, 24));
+		}
+		else if (a == 1)
+		{
+			stick.setTextureRect(sf::IntRect(30, 0, 24, 30));
+		}
+		else if (a == 2)
+		{
+			stick.setTextureRect(sf::IntRect(54, 0, 30, 24));
+		}
+		else
+		{
+			stick.setTextureRect(sf::IntRect(84, 0, 24, 30));
+		}
+	}
 	void shot()
 	{
 		dif = (endt - start) / CLOCKS_PER_SEC;
+		int a = ((int)(dif / 0.075))%4;
 		if (th == 1)
 		{
+			stickSet(a);
 			stick.move(0.25, 0);
 			if (stick.getPosition().x - sx > 600)reStick();
 		}
 		else if (th == 2)
 		{
+			stickSet(3-a);
 			stick.move(-0.25, 0);
 			if (stick.getPosition().x - sx < -600)reStick();
 		}
@@ -327,7 +350,7 @@ public:
 	int state = 0;
 	int air = 0;
 	float speed;
-	float width = 24, height = 24;
+	float width[3] = { 32,30,36 }, height[3] = { 32,36,36 };
 	sf::Sprite body;
 	void re()
 	{
@@ -351,7 +374,7 @@ public:
 		{
 			body.setTexture(item3Texture);
 		}
-		body.setTextureRect(sf::IntRect(0, 0, width, height));
+		body.setTextureRect(sf::IntRect(0, 0, width[a - 1], height[a - 1]));
 		body.setPosition(x,y);
 		this->state = 1;
 		this->air = 1;
@@ -418,7 +441,7 @@ public:
 			{
 				if (ITEM[i].state == 0)
 				{
-					ITEM[i].set(body.getPosition().x + ((width - ITEM[i].width) / 2), body.getPosition().y + 5, a);
+					ITEM[i].set(body.getPosition().x + ((width - ITEM[i].width[a-1]) / 2), body.getPosition().y + 5, a);
 					break;
 				}
 			}
@@ -487,19 +510,24 @@ int main()
 		//*/
 		setHead();
 		window.setView(view);
+		for (int i = 0; i < ch; i++)
+		{
+			if (CHEST[i].state > 0)window.draw(CHEST[i].body);
+		}
 		if(state == 0||state == 2)window.draw(shapeSprite);
+		window.draw(inventory1);
+		window.draw(inventory2);
 		window.draw(textScore);
 		window.draw(textFish);
 		window.draw(textFishbone);
 		window.draw(textHP);
 		window.draw(heart);
 		window.draw(fishForShow);
+		window.draw(fishboneForShow);
+		if(cItem == 2){ window.draw(item2); }
+		else if(cItem == 3){ window.draw(item3); }
 		endt = clock();
 		mainCharacter();
-		for (int i = 0; i < ch; i++)
-		{
-			if (CHEST[i].state > 0)window.draw(CHEST[i].body);
-		}
 		for (int i = 0; i < nb; i++)
 		{
 			if (NBear[i].HP > 0)
@@ -1027,12 +1055,12 @@ void shoot()
 			bullet = 2;
 			if (BH == 1)
 			{
-				Bullet.setPosition(shapeSprite.getPosition().x + 35, shapeSprite.getPosition().y + 10);
+				Bullet.setPosition(shapeSprite.getPosition().x + 35, shapeSprite.getPosition().y + 20);
 				bx = shapeSprite.getPosition().x + 35;
 			}
 			else
 			{
-				Bullet.setPosition(shapeSprite.getPosition().x - 15, shapeSprite.getPosition().y + 10);
+				Bullet.setPosition(shapeSprite.getPosition().x - 15, shapeSprite.getPosition().y + 20);
 				bx = shapeSprite.getPosition().x - 15;
 			}
 		}
@@ -1168,7 +1196,7 @@ void setText()
 	tFish = "X ";
 	tFish.insert(2, changeNtoS(fish, 2));
 	textFish.setString(tFish);
-	textFish.setPosition(view.getCenter().x - 90 , 5);
+	textFish.setPosition(view.getCenter().x - 110 , 5);
 
 	tFishbone = "X ";
 	if(fishbonecase == 0)tFishbone.insert(2, changeNtoS(fishbone, 2));
@@ -1195,7 +1223,7 @@ void setText()
 		}
 	}
 	textFishbone.setString(tFishbone);
-	textFishbone.setPosition(view.getCenter().x + 100, 5);
+	textFishbone.setPosition(view.getCenter().x + 90, 5);
 
 	tHP = "X ";
 	if(potion == 0)tHP.insert(2, changeNtoS(HP,2));
@@ -1221,7 +1249,7 @@ void setText()
 		}
 	}
 	textHP.setString(tHP);
-	textHP.setPosition(view.getCenter().x+290,5);
+	textHP.setPosition(view.getCenter().x+280,5);
 }
 
 std::string changeNtoS(int num,int zero)
@@ -1385,7 +1413,7 @@ void loadTexture()
 	{
 		std::cout << "fish Load failed " << std::endl;
 	}
-	if (!fishboneTexture.loadFromFile("sprites/fishbone.png"))
+	if (!fishboneTexture.loadFromFile("assets/fishbone.png"))
 	{
 		std::cout << "fishbone Load failed " << std::endl;
 	}
@@ -1397,19 +1425,19 @@ void loadTexture()
 	{
 		std::cout << "fonts Load failed " << std::endl;
 	}
-	if (!stickTexture.loadFromFile("sprites/stick.png"))
+	if (!stickTexture.loadFromFile("assets/stick.png"))
 	{
 		std::cout << "stick Load failed " << std::endl;
 	}
-	if (!item1Texture.loadFromFile("sprites/item1.png"))
+	if (!item1Texture.loadFromFile("assets/item1.png"))
 	{
 		std::cout << "item1 Load failed " << std::endl;
 	}
-	if (!item2Texture.loadFromFile("sprites/item2.png"))
+	if (!item2Texture.loadFromFile("assets/item2.png"))
 	{
 		std::cout << "item2 Load failed " << std::endl;
 	}
-	if (!item3Texture.loadFromFile("sprites/item3.png"))
+	if (!item3Texture.loadFromFile("assets/item3.png"))
 	{
 		std::cout << "item3 Load failed " << std::endl;
 	}
@@ -1433,6 +1461,18 @@ void loadTexture()
 	{
 		std::cout << "throwBear Load failed " << std::endl;
 	}
+	if (!fishboneForShowTexture.loadFromFile("assets/fishboneforshow.png"))
+	{
+		std::cout << "fishboneforshow Load failed " << std::endl;
+	}
+	if (!fishboneDropTexture.loadFromFile("assets/fishbonedrop.png"))
+	{
+		std::cout << "fishbonedrop Load failed " << std::endl;
+	}
+	if (!inventoryTexture.loadFromFile("assets/inventory.png"))
+	{
+		std::cout << "inventory Load failed " << std::endl;
+	}
 }
 
 void setSprite()
@@ -1450,6 +1490,24 @@ void setSprite()
 
 	fishForShow.setTexture(fishForShowTexture);
 	fishForShow.setTextureRect(sf::IntRect(0, 0, 48, 51));
+
+	fishboneForShow.setTexture(fishboneForShowTexture);
+	fishboneForShow.setTextureRect(sf::IntRect(0,0,56,54));
+
+	Bullet.setTexture(fishboneTexture);
+	Bullet.setTextureRect(sf::IntRect(0,0,26,24));
+
+	inventory1.setTexture(inventoryTexture);
+	inventory1.setTextureRect(sf::IntRect(0, 0, 56, 53));
+
+	inventory2.setTexture(inventoryTexture);
+	inventory2.setTextureRect(sf::IntRect(0, 0, 56, 53));
+
+	item2.setTexture(item2Texture);
+	item2.setTextureRect(sf::IntRect(0, 0, 30, 36));
+
+	item3.setTexture(item3Texture);
+	item3.setTextureRect(sf::IntRect(0, 0, 36, 36));
 }
 
 void firstTextSet()
@@ -1523,6 +1581,7 @@ void setMonster1()
 	NBear[8].set(2000, 432); // g5
 	NBear[9].set(2500, 432); // g5
 	
+	TBear[0].set(300, 400); // g1
 }
 
 void setFish1()
@@ -1578,7 +1637,12 @@ void use(int n)
 
 void setHead()
 {
-	heart.setPosition(view.getCenter().x + 235, 8);
-	fishForShow.setPosition(view.getCenter().x - 145, 9);
+	heart.setPosition(view.getCenter().x + 225, 8);
+	fishForShow.setPosition(view.getCenter().x - 165, 9);
+	fishboneForShow.setPosition(view.getCenter().x+30, 9);
+	inventory1.setPosition(view.getCenter().x + 407, 9);
+	inventory2.setPosition(view.getCenter().x + 463, 9);
+	item2.setPosition(view.getCenter().x + 477, 16);
+	item3.setPosition(view.getCenter().x + 474, 14);
 	setText();
 }

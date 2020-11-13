@@ -36,7 +36,7 @@ sf::RectangleShape ground[g]; // ground
 sf::Sprite Bullet;
 sf::View view;
 sf::Texture playerTextureRight, playerTextureLeft, fishboneTexture, attackTexture,stickTexture,fishTexture,chestTexture,item1Texture, item2Texture, item3Texture;
-sf::Texture heartTexture,fishForShowTexture;
+sf::Texture heartTexture,fishForShowTexture,normalBearTexture,throwBearTexture;
 double speed = 0; // use when jumping or falling
 bool down = 0, up = 0; // state of jumping
 
@@ -95,9 +95,10 @@ public:
 
 	int head = 2;  // 1 = Right , 2 = Left
 	int HP;
-	float width = 32, height = 32;
+	int animation;
+	float width = 24, height = 41;
 	int on;  // which ground that body stay
-	sf::RectangleShape body;
+	sf::Sprite body;
 	void re()
 	{
 		int rng = rand() % 100;
@@ -107,25 +108,25 @@ public:
 			{
 				if (FISHBONE[i].state != 1)
 				{
-					FISHBONE[i].set(body.getPosition().x+((this->width-FISHBONE[i].width)/2), body.getPosition().y+3);
+					FISHBONE[i].set(body.getPosition().x+((this->width-FISHBONE[i].width)/2), body.getPosition().y+this->height-FISHBONE[i].height-6);
 					break;
 				}
 			}
 		}
-		body.setSize({ 0,0 });
 		body.setPosition(-1, -1);
 		this->HP = -50;
 	}
 	void set(float x, float y)
 	{
 		head = (rand() % 2) + 1;
-		body.setSize({ width,height });
-		body.setFillColor(sf::Color::Red);
+		body.setTexture(normalBearTexture);
 		body.setPosition(x, y - height +0.0001);
 		HP = 10;
+		animation = 0;
 	}
 	void move() // walk left or right
 	{
+		animation++;
 		if (head == 1)
 		{
 			body.move(0.075f, .0f);
@@ -152,6 +153,7 @@ public:
 					body.move(-width, 0.f);
 				}
 			}
+			body.setTextureRect(sf::IntRect(16 + (61 * ((animation / 100) % 6)), 62, width, height));
 		}
 		else if (head == 2)
 		{
@@ -179,6 +181,7 @@ public:
 					body.move(width, 0.f);
 				}
 			}
+			body.setTextureRect(sf::IntRect(15 + (61 * ((animation / 100) % 6)), 141, width, height));
 		}
 	}
 };
@@ -191,8 +194,9 @@ public:
 	int head; // 1 = Right , 2 = Left
 	int HP = 0;
 	int th = 0;
-	float width = 32, height = 32;
-	sf::RectangleShape body;
+	int animation = 0;
+	float width = 27, height = 54;
+	sf::Sprite body;
 	sf::Sprite stick;
 	void re()
 	{
@@ -203,45 +207,48 @@ public:
 			{
 				if (FISHBONE[i].state != 1)
 				{
-					FISHBONE[i].set(body.getPosition().x + ((this->width - FISHBONE[i].width) / 2), body.getPosition().y+3);
+					FISHBONE[i].set(body.getPosition().x + ((this->width - FISHBONE[i].width) / 2), body.getPosition().y + this->height - FISHBONE[i].height - 6);
 					break;
 				}
 			}
 		}
-		body.setSize({ 0,0 });
 		body.setPosition(-1, -1);
 		stick.setPosition(-1, -1);
 		stick.setTextureRect({ 0,0,0,0 });
-		HP = -50;
+		this->HP = -50;
 	}
 	void set(float x, float y)
 	{
-		if (HP == 0) { stick.setTexture(stickTexture); }
-		body.setSize({ width,height });
-		body.setFillColor(sf::Color::Yellow);
+		if (HP == 0) { stick.setTexture(stickTexture);
+		body.setTexture(throwBearTexture);
+		}
 		body.setPosition(x, y - height + 0.0001);
 		HP = 20;
 	}
 	void move() // turn left or right
 	{
+		animation++;
 		if (shapeSprite.getPosition().x > body.getPosition().x)
 		{
 			head = 1;
+			body.setTextureRect(sf::IntRect(216 - 40*((animation/250)%3), 9, width, height));
 			// turn left
 		}
 		else
 		{
 			head = 2;
+			body.setTextureRect(sf::IntRect(15 + 40 * ((animation / 250) % 3), 73, width, height));
 			// turn right
 		}
 		if (head == 1 && th == 0)
 		{
 			if (body.getPosition().x - shapeSprite.getPosition().x < 1000)
 			{
+				animation = 0;
 				stick.setTextureRect({ 0,0,16,16 });
 				stick.setPosition(body.getPosition().x+width+3,body.getPosition().y+(height/2) - 10);
 				sx = stick.getPosition().x;
-				th = 1;
+				th = -1;
 				start = clock();
 			}
 		}
@@ -249,9 +256,32 @@ public:
 		{
 			if (body.getPosition().x - shapeSprite.getPosition().x > -1000)
 			{
+				animation = 0;
 				stick.setTextureRect({ 0,0,16,16 });
 				stick.setPosition(body.getPosition().x-stick.getScale().x+3, body.getPosition().y + (height / 2) - 10);
 				sx = stick.getPosition().x;
+				th = -2;
+				start = clock();
+			}
+		}
+		if (th == -1)
+		{
+			dif = (endt - start) / CLOCKS_PER_SEC;
+			if (dif <= 0.075) body.setTextureRect(sf::IntRect(95 , 9, width, height));
+			else if (dif <= 0.15) body.setTextureRect(sf::IntRect(55, 9, width, height));
+			else if (dif <= 0.225) body.setTextureRect(sf::IntRect(15, 9, width+3, height));
+			else {
+				th = 1;
+				start = clock();
+			}
+		}
+		else if (th == -2)
+		{
+			dif = (endt - start) / CLOCKS_PER_SEC;
+			if (dif <= 0.075) body.setTextureRect(sf::IntRect(136, 73, width, height));
+			else if (dif <= 0.15) body.setTextureRect(sf::IntRect(176, 73, width, height));
+			else if (dif <= 0.225) body.setTextureRect(sf::IntRect(216, 73, width + 3, height));
+			else {
 				th = 2;
 				start = clock();
 			}
@@ -259,7 +289,7 @@ public:
 	}
 	void shot()
 	{
-		dif = ((double)endt - (double)start) / CLOCKS_PER_SEC;
+		dif = (endt - start) / CLOCKS_PER_SEC;
 		if (th == 1)
 		{
 			stick.move(0.25, 0);
@@ -444,8 +474,14 @@ int main()
 		sf::Event event;
 		if (window.pollEvent(event)) {}
 		/*
-			test.setTexture(heartTexture); 
-			test.setTextureRect(sf::IntRect(0, 0, 64, 64));
+			float w = 27, h = 54;
+			sf::RectangleShape bg;
+			bg.setSize({ w, h });
+			bg.setPosition(spawn);
+			bg.setFillColor(sf::Color::White);
+			window.draw(bg);
+			test.setTexture(throwBearTexture); 
+			test.setTextureRect(sf::IntRect(95-80, 9, w+3, h));
 			test.setPosition(spawn);
 			window.draw(test);
 		//*/
@@ -1389,6 +1425,14 @@ void loadTexture()
 	{
 		std::cout << "FFF Load failed " << std::endl;
 	}
+	if (!normalBearTexture.loadFromFile("sprites/normalBear.png"))
+	{
+		std::cout << "normalBear Load failed " << std::endl;
+	}
+	if (!throwBearTexture.loadFromFile("sprites/throwBear.png"))
+	{
+		std::cout << "throwBear Load failed " << std::endl;
+	}
 }
 
 void setSprite()
@@ -1478,7 +1522,7 @@ void setMonster1()
 	NBear[7].set(1750, 432); // g5
 	NBear[8].set(2000, 432); // g5
 	NBear[9].set(2500, 432); // g5
-
+	
 }
 
 void setFish1()

@@ -3,13 +3,15 @@
 #include <time.h>
 #include <string>
 
-const int g = 7, nb = 10, tb = 1; // number of ground , number of normal bear , number of throw bear
+const int nb = 10, tb = 1; //  number of normal bear , number of throw bear
 const int f = 20, fb = 20, it = 10; // number of fish , number of fishbone , number of item
 const int ch = 2; // number of chest
 double startt, endt,startAttack,startB,dif;
 double startP,startF; // start Potion, start fishbonecase
 bool potion = 0; // state of potion
 bool fishbonecase = 0; // state of fishbonecase
+int g = 0; // number of ground
+int i,j;
 int state = 0; // 1 = after recieve damage
 int attack = 0; // 0 = ready to attack, 1 = attack state , 2 = after attack
 int cItem = 0; // current item in bags 1.+HP 2.Potion 3.Fishbonecase
@@ -33,14 +35,30 @@ sf::Sprite heart;
 sf::Sprite test;
 sf::Sprite inventory1,inventory2,item2,item3;
 sf::Sprite fishForShow,fishboneForShow;
-sf::RectangleShape ground[g]; // ground
 sf::Sprite Bullet;
 sf::View view;
-sf::Texture playerTextureRight, playerTextureLeft, fishboneTexture, attackTexture,stickTexture,fishTexture,chestTexture,item1Texture, item2Texture, item3Texture;
+sf::Texture playerTextureRight, playerTextureLeft, fishboneTexture, attackTexture,stickTexture,fishTexture,chestTexture,item1Texture, item2Texture, item3Texture, ground1Texture;
 sf::Texture heartTexture,fishForShowTexture, fishboneForShowTexture,normalBearTexture,throwBearTexture,fishboneDropTexture,inventoryTexture;
 double speed = 0; // use when jumping or falling
 bool down = 0, up = 0; // state of jumping
 
+class GROUND
+{
+public:
+	
+	sf::Sprite ground;
+	GROUND(float sizex,float sizey,float posx,float posy,int n)
+	{
+		if (n == 1)
+		{
+			ground.setTexture(ground1Texture);
+		}
+		ground.setPosition(posx,posy);
+		ground.setTextureRect(sf::IntRect(0, 0, sizex, sizey));
+		g++;
+	}
+};
+std::vector<GROUND> ground; //ground
 class Fish
 {
 public:
@@ -131,12 +149,13 @@ public:
 		if (head == 1)
 		{
 			body.move(0.075f, .0f);
-			for (int i = 0; i < g; i++)
+			i = 0;
+			for (std::vector<GROUND>::iterator it = ground.begin(); it!=ground.end(); i++,it++)
 			{
-				if (body.getGlobalBounds().intersects(ground[i].getGlobalBounds()))
+				if (body.getGlobalBounds().intersects(ground[i].ground.getGlobalBounds()))
 				{
 					on = i;
-					if (body.getPosition().y + 31 > ground[i].getPosition().y)
+					if (body.getPosition().y + 31 > ground[i].ground.getPosition().y)
 					{
 						body.move(-0.075f, 0.f);
 						head = 2;
@@ -146,7 +165,7 @@ public:
 				if (i == g - 1)
 				{
 					body.move(width, 0);
-					if (!body.getGlobalBounds().intersects(ground[on].getGlobalBounds()))
+					if (!body.getGlobalBounds().intersects(ground[on].ground.getGlobalBounds()))
 					{
 						body.move(-0.075f, 0.f);
 						head = 2;
@@ -159,12 +178,13 @@ public:
 		else if (head == 2)
 		{
 			body.move(-0.075f, .0f);
-			for (int i = 0; i < g; i++)
+			i = 0;
+			for (std::vector<GROUND>::iterator it = ground.begin(); it != ground.end(); i++, it++)
 			{
-				if (body.getGlobalBounds().intersects(ground[i].getGlobalBounds()))
+				if (body.getGlobalBounds().intersects(ground[i].ground.getGlobalBounds()))
 				{
 					on = i;
-					if (body.getPosition().y + 31 > ground[i].getPosition().y)
+					if (body.getPosition().y + 31 > ground[i].ground.getPosition().y)
 					{
 						body.move(0.075f, 0.f);
 						head = 1;
@@ -174,7 +194,7 @@ public:
 				if (i == g - 1)
 				{
 					body.move(-width, 0.f);
-					if (!body.getGlobalBounds().intersects(ground[on].getGlobalBounds()))
+					if (!body.getGlobalBounds().intersects(ground[on].ground.getGlobalBounds()))
 					{
 						body.move(0.075f, 0.f);
 						head = 1;
@@ -323,9 +343,10 @@ public:
 			stick.move(-0.25, 0);
 			if (stick.getPosition().x - sx < -600)reStick();
 		}
-		for (int i = 0; i < g; i++)
+		i = 0;
+		for (std::vector<GROUND>::iterator it = ground.begin(); it != ground.end(); i++, it++)
 		{
-			if (stick.getGlobalBounds().intersects(ground[i].getGlobalBounds()))
+			if (stick.getGlobalBounds().intersects(ground[i].ground.getGlobalBounds()))
 			{
 				reStick();
 			}
@@ -386,11 +407,12 @@ public:
 		{
 			speed -= 0.0005;
 			body.move(.0f, -speed);
-			for (int i = 0; i < g; i++)
+			i = 0;
+			for (std::vector<GROUND>::iterator it = ground.begin(); it != ground.end(); i++, it++)
 			{
-				if (body.getGlobalBounds().intersects(ground[i].getGlobalBounds()))
+				if (body.getGlobalBounds().intersects(ground[i].ground.getGlobalBounds()))
 				{
-					if (body.getPosition().y > ground[i].getPosition().y)
+					if (body.getPosition().y > ground[i].ground.getPosition().y)
 					{
 						body.move(.0f, speed);
 					}
@@ -402,13 +424,14 @@ public:
 		{
 			speed += 0.0005;
 			body.move(0.f, speed);
-			for (int i = 0; i < g; i++)
+			i = 0;
+			for (std::vector<GROUND>::iterator it = ground.begin(); it != ground.end(); i++, it++)
 			{
-				if (body.getGlobalBounds().intersects(ground[i].getGlobalBounds()))
+				if (body.getGlobalBounds().intersects(ground[i].ground.getGlobalBounds()))
 				{
-					if (body.getPosition().y > ground[i].getPosition().y)
+					if (body.getPosition().y > ground[i].ground.getPosition().y)
 					{
-						body.move(0.f, -(body.getPosition().y - ground[i].getPosition().y));
+						body.move(0.f, -(body.getPosition().y - ground[i].ground.getPosition().y));
 					}
 					air = 0;
 				}
@@ -485,8 +508,8 @@ int main()
 	view = window.getView();
 
 	shapeSprite.setPosition(spawn);
-	setGround1();
 	loadTexture();
+	setGround1();
 	setSprite();
 	firstTextSet();
 	setMonster1();
@@ -590,9 +613,9 @@ int main()
 		{
 			if (FISHBONE[i].state == 1)window.draw(FISHBONE[i].body);
 		}
-		for (int i = 0; i < g; i++)
+		for (std::vector<GROUND>::iterator it = ground.begin(); it != ground.end(); it++)
 		{
-			window.draw(ground[i]);
+			window.draw(it->ground);
 		}
 		damageCal();
 		collectFish();
@@ -636,11 +659,12 @@ void mainCharacter()
 		RH = 2;
 		shapeSprite.move(-0.18f, 0.f);
 		if ((view.getCenter().x - shapeSprite.getPosition().x >= -16) && view.getCenter().x - 540 > startx)view.move(-0.18, 0);
-		for (int i = 0; i < g; i++)
+		i = 0;
+		for (std::vector<GROUND>::iterator it = ground.begin(); it != ground.end(); i++, it++)
 		{
-			if (shapeSprite.getGlobalBounds().intersects(ground[i].getGlobalBounds()))
+			if (shapeSprite.getGlobalBounds().intersects(ground[i].ground.getGlobalBounds()))
 			{
-				if (shapeSprite.getPosition().y + shapeSprite.getTextureRect().height - 1 > ground[i].getPosition().y)
+				if (shapeSprite.getPosition().y + shapeSprite.getTextureRect().height - 1 > ground[i].ground.getPosition().y)
 				{
 					shapeSprite.move(0.18f, 0.f);
 					if ((view.getCenter().x - shapeSprite.getPosition().x >= -16) && view.getCenter().x - 540 > startx)view.move(0.18, 0);
@@ -656,11 +680,12 @@ void mainCharacter()
 		RH = 1;
 		shapeSprite.move(.18f, 0.f);
 		if ((view.getCenter().x - shapeSprite.getPosition().x <= 16) && view.getCenter().x + 540 < endx)view.move(.18, 0);
-		for (int i = 0; i < g; i++)
+		i = 0;
+		for (std::vector<GROUND>::iterator it = ground.begin(); it != ground.end(); i++, it++)
 		{
-			if (shapeSprite.getGlobalBounds().intersects(ground[i].getGlobalBounds()))
+			if (shapeSprite.getGlobalBounds().intersects(ground[i].ground.getGlobalBounds()))
 			{
-				if (shapeSprite.getPosition().y + shapeSprite.getTextureRect().height-1 > ground[i].getPosition().y)
+				if (shapeSprite.getPosition().y + shapeSprite.getTextureRect().height-1 > ground[i].ground.getPosition().y)
 				{
 					shapeSprite.move(-0.18f, 0.f);
 					if ((view.getCenter().x - shapeSprite.getPosition().x <= 16) && view.getCenter().x + 540 < endx)view.move(-18, 0);
@@ -742,11 +767,12 @@ void mainCharacter()
 	{
 		speed -= 0.00085;
 		shapeSprite.move(.0f, -speed);
-		for (int i = 0; i < g; i++)
+		i = 0;
+		for (std::vector<GROUND>::iterator it = ground.begin(); it != ground.end(); i++, it++)
 		{
-			if (shapeSprite.getGlobalBounds().intersects(ground[i].getGlobalBounds()))
+			if (shapeSprite.getGlobalBounds().intersects(ground[i].ground.getGlobalBounds()))
 			{
-				if (shapeSprite.getPosition().y > ground[i].getPosition().y)
+				if (shapeSprite.getPosition().y > ground[i].ground.getPosition().y)
 				{
 					shapeSprite.move(.0f, speed);
 				}
@@ -756,16 +782,18 @@ void mainCharacter()
 		else shapeSprite.setTextureRect(sf::IntRect(626-40-330, 234, 40, 56));
 		if (speed <= 0)up = 0;
 	}
-	for (int i = 0; i < g; i++)
+	i = 0;
+	for (std::vector<GROUND>::iterator it = ground.begin(); it != ground.end(); i++, it++)
 	{
-		if (shapeSprite.getGlobalBounds().intersects(ground[i].getGlobalBounds()) && !up && !down && !gr)
+		if (shapeSprite.getGlobalBounds().intersects(ground[i].ground.getGlobalBounds()) && !up && !down && !gr)
 		{
 			gr = 1;
 		}
 	}
-	for (int i = 0; i < g; i++)
+	i = 0;
+	for (std::vector<GROUND>::iterator it = ground.begin(); it != ground.end(); i++, it++)
 	{
-		if (!shapeSprite.getGlobalBounds().intersects(ground[i].getGlobalBounds()) && !up && !down && !gr)
+		if (!shapeSprite.getGlobalBounds().intersects(ground[i].ground.getGlobalBounds()) && !up && !down && !gr)
 		{
 			down = 1;
 			speed = 0;
@@ -775,13 +803,14 @@ void mainCharacter()
 	{
 		speed += 0.00085;
 		shapeSprite.move(0.f, speed);
-		for (int i = 0; i < g; i++)
+		i = 0;
+		for (std::vector<GROUND>::iterator it = ground.begin(); it != ground.end(); i++, it++)
 		{
-			if (shapeSprite.getGlobalBounds().intersects(ground[i].getGlobalBounds()))
+			if (shapeSprite.getGlobalBounds().intersects(ground[i].ground.getGlobalBounds()))
 			{
-				if (shapeSprite.getPosition().y > ground[i].getPosition().y)
+				if (shapeSprite.getPosition().y > ground[i].ground.getPosition().y)
 				{
-					shapeSprite.move(0.f, -(shapeSprite.getPosition().y - ground[i].getPosition().y));
+					shapeSprite.move(0.f, -(shapeSprite.getPosition().y - ground[i].ground.getPosition().y));
 				}
 				down = 0;
 			}
@@ -1099,9 +1128,10 @@ void shoot()
 			}
 			if (bullet == 2)
 			{
-				for (int i = 0; i < g; i++)
+				i = 0;
+				for (std::vector<GROUND>::iterator it = ground.begin(); it != ground.end(); i++, it++)
 				{
-					if (Bullet.getGlobalBounds().intersects(ground[i].getGlobalBounds()))
+					if (Bullet.getGlobalBounds().intersects(ground[i].ground.getGlobalBounds()))
 					{
 						bullet = 3;
 						break;
@@ -1124,12 +1154,12 @@ void shoot()
 			bullet = 2;
 			if (BH == 1)
 			{
-				Bullet.setPosition(shapeSprite.getPosition().x + 35, shapeSprite.getPosition().y + 10);
+				Bullet.setPosition(shapeSprite.getPosition().x + 35, shapeSprite.getPosition().y + 20);
 				bx = shapeSprite.getPosition().x + 35;
 			}
 			else
 			{
-				Bullet.setPosition(shapeSprite.getPosition().x - 15, shapeSprite.getPosition().y + 10);
+				Bullet.setPosition(shapeSprite.getPosition().x - 15, shapeSprite.getPosition().y + 20);
 				bx = shapeSprite.getPosition().x - 15;
 			}
 		}
@@ -1168,9 +1198,10 @@ void shoot()
 			}
 			if (bullet == 2)
 			{
-				for (int i = 0; i < g; i++)
+				i = 0;
+				for (std::vector<GROUND>::iterator it = ground.begin(); it != ground.end(); i++, it++)
 				{
-					if (Bullet.getGlobalBounds().intersects(ground[i].getGlobalBounds()))
+					if (Bullet.getGlobalBounds().intersects(ground[i].ground.getGlobalBounds()))
 					{
 						bullet = 3;
 						break;
@@ -1295,18 +1326,20 @@ void scratch()
 				if (AH == 1)
 				{
 					NBear[i].head = 2;
-					for (int j = 0; j < g; j++)
+					j = 0;
+					for (std::vector<GROUND>::iterator it = ground.begin(); it != ground.end(); j++, it++)
 					{
-						if (NBear[i].body.getGlobalBounds().intersects(ground[j].getGlobalBounds()))
+						if (NBear[i].body.getGlobalBounds().intersects(ground[j].ground.getGlobalBounds()))
 						{
 							onG = j;
 							break;
 						}
 					}
 					NBear[i].body.move(5, 0);
-					for (int j = 0; j < g; j++)
+					j = 0;
+					for (std::vector<GROUND>::iterator it = ground.begin(); it != ground.end(); j++, it++)
 					{
-						if (NBear[i].body.getGlobalBounds().intersects(ground[j].getGlobalBounds()))
+						if (NBear[i].body.getGlobalBounds().intersects(ground[j].ground.getGlobalBounds()))
 						{
 							if (j != onG)
 							{
@@ -1319,18 +1352,20 @@ void scratch()
 				else
 				{
 					NBear[i].head = 1;
-					for (int j = 0; j < g; j++)
+					j = 0;
+					for (std::vector<GROUND>::iterator it = ground.begin(); it != ground.end(); j++, it++)
 					{
-						if (NBear[i].body.getGlobalBounds().intersects(ground[j].getGlobalBounds()))
+						if (NBear[i].body.getGlobalBounds().intersects(ground[j].ground.getGlobalBounds()))
 						{
 							onG = j;
 							break;
 						}
 					}
 					NBear[i].body.move(-5, 0);
-					for (int j = 0; j < g; j++)
+					j = 0;
+					for (std::vector<GROUND>::iterator it = ground.begin(); it != ground.end(); j++, it++)
 					{
-						if (NBear[i].body.getGlobalBounds().intersects(ground[j].getGlobalBounds()))
+						if (NBear[i].body.getGlobalBounds().intersects(ground[j].ground.getGlobalBounds()))
 						{
 							if (j != onG)
 							{
@@ -1473,6 +1508,10 @@ void loadTexture()
 	{
 		std::cout << "inventory Load failed " << std::endl;
 	}
+	if (!ground1Texture.loadFromFile("a.png"))
+	{
+		std::cout << "ground1 Load failed " << std::endl;
+	}
 }
 
 void setSprite()
@@ -1539,33 +1578,13 @@ void firstTextSet()
 
 void setGround1()
 {
-	ground[0].setSize({ 1200.f,32.f });
-	ground[0].setPosition(0.f, 600.f);
-	ground[0].setFillColor(sf::Color::Green);
-
-	ground[1].setSize({ 300.f,32.f });
-	ground[1].setPosition(200.f, 400.f);
-	ground[1].setFillColor(sf::Color::Green);
-
-	ground[2].setSize({ 200,32 });
-	ground[2].setPosition(900, 568);
-	ground[2].setFillColor(sf::Color::Green);
-
-	ground[3].setSize({ 1600,32 });
-	ground[3].setPosition(1200, 632);
-	ground[3].setFillColor(sf::Color::Green);
-
-	ground[4].setSize({ 32,232 });
-	ground[4].setPosition(2800, 432);
-	ground[4].setFillColor(sf::Color::Green);
-
-	ground[5].setSize({ 2000,32 });
-	ground[5].setPosition(1500, 432);
-	ground[5].setFillColor(sf::Color::Green);
-
-	ground[6].setSize({ 100,32 });
-	ground[6].setPosition(0, 568);
-	ground[6].setFillColor(sf::Color::Green);
+	ground.push_back(GROUND(1200.0, 32.0, 0.0, 600.0,1)); // 0
+	ground.push_back(GROUND(300.0, 32.0, 200.0, 400.0, 1)); // 1
+	ground.push_back(GROUND(200.0, 32.0, 900.0, 568.0, 1)); // 2
+	ground.push_back(GROUND(1600.0, 32.0, 1200.0, 632.0, 1)); // 3
+	ground.push_back(GROUND(32.0, 232.0, 2800.0, 432.0, 1)); // 4
+	ground.push_back(GROUND(2000.0, 32.0, 1500.0, 432.0, 1)); // 5
+	ground.push_back(GROUND(100.0, 32.0, 0.0, 568.0, 1)); // 6
 }
 
 void setMonster1()

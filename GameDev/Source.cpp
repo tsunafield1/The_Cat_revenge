@@ -4,7 +4,7 @@
 #include <string>
 
 const int nb = 20, tb = 20; //  number of normal bear , number of throw bear
-const int f = 20, fb = 20, it = 10; // number of fish , number of fishbone , number of item
+const int f = 30, fb = 20, it = 10; // number of fish , number of fishbone , number of item
 const int ch = 2; // number of chest
 double Speed = 1;
 double startt, endt,startAttack,startB,startM,startEx,dif;
@@ -1540,12 +1540,16 @@ void setMonster1()
 	NBear[1].set(200, 600); // g1
 	NBear[2].set(1000, 568); // g4
 	NBear[3].set(1400, 632); // g0
-	NBear[4].set(2500, 632); // g0
-	NBear[5].set(2000, 632); // g0
+	NBear[4].set(1700, 632); // g0
+	NBear[5].set(2000, 632); // g0 
 	NBear[6].set(2250, 632); // g0
-	NBear[7].set(1750, 432); // g6
-	NBear[8].set(2000, 432); // g6
-	NBear[9].set(2500, 432); // g6
+	NBear[7].set(2500, 632); // g0
+	NBear[8].set(1750, 432); // g6
+	NBear[9].set(1875, 432); // g6
+	NBear[10].set(2000, 432); // g6
+	NBear[11].set(2125, 432); // g6
+	NBear[12].set(2250, 432); // g6
+	NBear[13].set(2500, 432); // g6
 	
 	TBear[0].set(300, 400); // g1
 	TBear[1].set(2886, 368); // g9

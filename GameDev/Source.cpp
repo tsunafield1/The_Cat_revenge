@@ -3,10 +3,11 @@
 #include <time.h>
 #include <string>
 
-const int nb = 10, tb = 1; //  number of normal bear , number of throw bear
+const int nb = 20, tb = 20; //  number of normal bear , number of throw bear
 const int f = 20, fb = 20, it = 10; // number of fish , number of fishbone , number of item
 const int ch = 2; // number of chest
-double startt, endt,startAttack,startB,dif;
+double Speed = 1;
+double startt, endt,startAttack,startB,startM,startEx,dif;
 double startP,startF; // start Potion, start fishbonecase
 bool potion = 0; // state of potion
 bool fishbonecase = 0; // state of fishbonecase
@@ -19,14 +20,17 @@ int attackDamage = 5;
 int animation = 0,Ranimation = 0,Lanimation = 0;
 std::string tHP, tScore , tFish , tFishbone; // String of HP , Score , Fish , Fishbone
 int HP = 3; // Hit point
-int score = 0; 
+int score = 0;
 int fish = 0; // Fish
 int fishbone = 2; // Ammo
 bool gr = 0; // is sprite on the ground?  
 int RH = 1,BH,AH; // recent head of main character
 int bullet = 0; // bullet status
 int bx,endx,startx; // x of bullet,Highest x,Lowest of x 
+int close = 0;
 sf::Text textHP,textScore,textFish,textFishbone;
+sf::Text Exit[3];
+sf::Text Menu[3];
 sf::Font font;
 sf::Vector2f spawn = { 30, 450 }; // spawn point
 sf::Sprite shapeSprite; // main character
@@ -36,9 +40,12 @@ sf::Sprite test;
 sf::Sprite inventory1,inventory2,item2,item3;
 sf::Sprite fishForShow,fishboneForShow;
 sf::Sprite Bullet;
-sf::View view;
-sf::Texture playerTextureRight, playerTextureLeft, fishboneTexture, attackTexture,stickTexture,fishTexture,chestTexture,item1Texture, item2Texture, item3Texture, ground1Texture;
+sf::Sprite menuBG, exitBG,gameBG;
+sf::View view,startView;
+sf::Texture playerTextureRight, playerTextureLeft, fishboneTexture, attackTexture,stickTexture,fishTexture,chestTexture,item1Texture, item2Texture, item3Texture;
 sf::Texture heartTexture,fishForShowTexture, fishboneForShowTexture,normalBearTexture,throwBearTexture,fishboneDropTexture,inventoryTexture;
+sf::Texture ground1Texture, underGround1Texture;
+sf::Texture menuBGTexture, exitBGTexture,gameBG1Texture;
 double speed = 0; // use when jumping or falling
 bool down = 0, up = 0; // state of jumping
 
@@ -47,7 +54,8 @@ class GROUND
 public:
 	
 	sf::Sprite ground;
-	GROUND(float sizex,float sizey,float posx,float posy,int n)
+	sf::Sprite underGround;
+	GROUND(float sizex,float sizey,float posx,float posy,int n,int under)
 	{
 		if (n == 1)
 		{
@@ -56,6 +64,15 @@ public:
 		ground.setPosition(posx,posy);
 		ground.setTextureRect(sf::IntRect(0, 0, sizex, sizey));
 		g++;
+		if (under == 1)
+		{
+			underGround.setTexture(underGround1Texture);
+		}
+		if (under > 0)
+		{
+			underGround.setPosition(posx, posy + 32);
+			underGround.setTextureRect(sf::IntRect(0, 0, sizex, 750 - (32 + posy)));
+		}
 	}
 };
 std::vector<GROUND> ground; //ground
@@ -68,17 +85,14 @@ public:
 	sf::Sprite body;
 	void re()
 	{
-		this->state = 2;
+		this->state = 0;
 		body.setTextureRect(sf::IntRect(0, 0, 0, 0));
 		body.setPosition(-100, -100);
 	}
 	void set(float x, float y)
 	{
-		if (state == 0)
-		{
-			body.setTexture(fishTexture);
-			body.setTextureRect(sf::IntRect(0, 0, width, height));
-		}
+		body.setTexture(fishTexture);
+		body.setTextureRect(sf::IntRect(0, 0, width, height));
 		this->state = 1;
 		body.setPosition(x, y);
 	}
@@ -148,7 +162,7 @@ public:
 		animation++;
 		if (head == 1)
 		{
-			body.move(0.075f, .0f);
+			body.move(0.075f * Speed, .0f);
 			i = 0;
 			for (std::vector<GROUND>::iterator it = ground.begin(); it!=ground.end(); i++,it++)
 			{
@@ -157,7 +171,7 @@ public:
 					on = i;
 					if (body.getPosition().y + 31 > ground[i].ground.getPosition().y)
 					{
-						body.move(-0.075f, 0.f);
+						body.move(-0.075f*Speed, 0.f);
 						head = 2;
 						break;
 					}
@@ -167,7 +181,7 @@ public:
 					body.move(width, 0);
 					if (!body.getGlobalBounds().intersects(ground[on].ground.getGlobalBounds()))
 					{
-						body.move(-0.075f, 0.f);
+						body.move(-0.075f * Speed, 0.f);
 						head = 2;
 					}
 					body.move(-width, 0.f);
@@ -177,7 +191,7 @@ public:
 		}
 		else if (head == 2)
 		{
-			body.move(-0.075f, .0f);
+			body.move(-0.075f * Speed, .0f);
 			i = 0;
 			for (std::vector<GROUND>::iterator it = ground.begin(); it != ground.end(); i++, it++)
 			{
@@ -186,7 +200,7 @@ public:
 					on = i;
 					if (body.getPosition().y + 31 > ground[i].ground.getPosition().y)
 					{
-						body.move(0.075f, 0.f);
+						body.move(0.075f * Speed, 0.f);
 						head = 1;
 						break;
 					}
@@ -196,7 +210,7 @@ public:
 					body.move(-width, 0.f);
 					if (!body.getGlobalBounds().intersects(ground[on].ground.getGlobalBounds()))
 					{
-						body.move(0.075f, 0.f);
+						body.move(0.075f * Speed, 0.f);
 						head = 1;
 					}
 					body.move(width, 0.f);
@@ -253,17 +267,17 @@ public:
 		{
 			head = 1;
 			body.setTextureRect(sf::IntRect(216 - 40*((animation/250)%3), 9, width, height));
-			// turn left
+			// turn right
 		}
 		else
 		{
 			head = 2;
 			body.setTextureRect(sf::IntRect(15 + 40 * ((animation / 250) % 3), 73, width, height));
-			// turn right
+			// turn left
 		}
 		if (head == 1 && th == 0)
 		{
-			if (body.getPosition().x - shapeSprite.getPosition().x < 1000)
+			if (body.getPosition().x - shapeSprite.getPosition().x > -630)
 			{
 				animation = 0;
 				stick.setTextureRect(sf::IntRect(0, 0, 30, 24));
@@ -275,7 +289,7 @@ public:
 		}
 		else if(head == 2 && th == 0)
 		{
-			if (body.getPosition().x - shapeSprite.getPosition().x > -1000)
+			if (body.getPosition().x - shapeSprite.getPosition().x < 630)
 			{
 				animation = 0;
 				stick.setTextureRect(sf::IntRect(0, 0, 30, 24));
@@ -334,13 +348,13 @@ public:
 		if (th == 1)
 		{
 			stickSet(a);
-			stick.move(0.25, 0);
+			stick.move(0.25 * Speed, 0);
 			if (stick.getPosition().x - sx > 600)reStick();
 		}
 		else if (th == 2)
 		{
 			stickSet(3-a);
-			stick.move(-0.25, 0);
+			stick.move(-0.25 * Speed, 0);
 			if (stick.getPosition().x - sx < -600)reStick();
 		}
 		i = 0;
@@ -447,6 +461,11 @@ public:
 	int state;
 	float width = 48, height = 42, difH = 6;
 	sf::Sprite body;
+	void re()
+	{
+		body.setPosition(-100,-100);
+		this->state = 1;
+	}
 	void set(float x, float y)
 	{
 		body.setTexture(chestTexture);
@@ -459,7 +478,6 @@ public:
 		if (state == 1)
 		{
 			int a = (rand() % 3) + 1;
-			std:: cout << a;
 			for (int i = 0; i < it; i++)
 			{
 				if (ITEM[i].state == 0)
@@ -493,28 +511,31 @@ void collectFish();
 void setChest1();
 void use(int);
 void setHead();
+void stage1();
+void start();
+void reset();
+void leaderboard();
+void MENU();
+void exitFromMenu();
+void gameDraw();
+void gameCal();
+void gamePause();
 
 normalBear NBear[nb];
 throwBear TBear[tb];
 Fish FISH[f];
 chest CHEST[ch];
+sf::RenderWindow window(sf::VideoMode(1080, 720), "Test", sf::Style::Default);
 
 int main()
 {
 	srand(time(NULL));
-	startx = 0;
-	endx = 5000;
-	sf::RenderWindow window(sf::VideoMode(1080, 720), "Test", sf::Style::Default);
-	view = window.getView();
-
-	shapeSprite.setPosition(spawn);
-	loadTexture();
-	setGround1();
-	setSprite();
-	firstTextSet();
-	setMonster1();
-	setFish1();
-	setChest1();
+	startView = window.getView();
+	start();
+	MENU();
+	if (close == 1)return 0;
+	//view.move(900, 0);
+	stage1();
 	while (window.isOpen())
 	{
 		sf::Event event;
@@ -531,109 +552,12 @@ int main()
 			test.setPosition(spawn);
 			window.draw(test);
 		//*/
-		setHead();
-		window.setView(view);
-		for (int i = 0; i < ch; i++)
-		{
-			if (CHEST[i].state > 0)window.draw(CHEST[i].body);
-		}
-		if(state == 0||state == 2)window.draw(shapeSprite);
-		window.draw(inventory1);
-		window.draw(inventory2);
-		window.draw(textScore);
-		window.draw(textFish);
-		window.draw(textFishbone);
-		window.draw(textHP);
-		window.draw(heart);
-		window.draw(fishForShow);
-		window.draw(fishboneForShow);
-		if(cItem == 2){ window.draw(item2); }
-		else if(cItem == 3){ window.draw(item3); }
-		endt = clock();
-		mainCharacter();
-		for (int i = 0; i < nb; i++)
-		{
-			if (NBear[i].HP > 0)
-			{
-				window.draw(NBear[i].body);
-				NBear[i].move();
-			}
-			else if (NBear[i].HP == -50){}
-			else
-			{
-				NBear[i].re();
-			}
-		}
-		for (int i = 0; i < tb; i++)
-		{
-			if (TBear[i].HP == -50) {}
-			else if (TBear[i].th < 3 && TBear[i].th > 0)
-			{
-				window.draw(TBear[i].stick);
-			}
-
-		}
-		for (int i = 0; i < tb; i++)
-		{
-			if (TBear[i].HP > 0)
-			{
-				window.draw(TBear[i].body);
-				TBear[i].move();
-				TBear[i].shot();
-			}
-			else if (TBear[i].HP == -50) {}
-			else if (TBear[i].HP <=0)
-			{
-				TBear[i].re();
-			}
-		}
-		if (bullet > 0)
-		{
-			shoot();
-			if (bullet < 3) window.draw(Bullet);
-		}
-		if (attack > 0)
-		{
-			scratch();
-			if (attack < 4)window.draw(attackSprite);
-		}
-		for (int i = 0; i < it; i++)
-		{
-			if (ITEM[i].state > 0)
-			{
-				window.draw(ITEM[i].body);
-				ITEM[i].move();
-			}
-		}
-		for (int i = 0; i < f; i++)
-		{
-			if(FISH[i].state == 1)window.draw(FISH[i].body);
-		}
-		for (int i = 0; i < fb; i++)
-		{
-			if (FISHBONE[i].state == 1)window.draw(FISHBONE[i].body);
-		}
-		for (std::vector<GROUND>::iterator it = ground.begin(); it != ground.end(); it++)
-		{
-			window.draw(it->ground);
-		}
-		damageCal();
-		collectFish();
-		window.display();
+		gameCal();
+		gameDraw();
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape))
 		{
-			while (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape));
-			while (1)
-			{
-				if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape))
-				{
-					while (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape));
-					window.close();
-					break;
-				}
-			}
+			gamePause();
 		}
-		window.clear();
 	}
 	return 0;
 }
@@ -657,8 +581,8 @@ void mainCharacter()
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::A) && shapeSprite.getPosition().x > startx&&!sf::Keyboard::isKeyPressed(sf::Keyboard::D))
 	{
 		RH = 2;
-		shapeSprite.move(-0.18f, 0.f);
-		if ((view.getCenter().x - shapeSprite.getPosition().x >= -16) && view.getCenter().x - 540 > startx)view.move(-0.18, 0);
+		shapeSprite.move(-0.18f * Speed, 0.f);
+		if ((view.getCenter().x - shapeSprite.getPosition().x >= -16) && view.getCenter().x - 540 > startx)view.move(-0.18* Speed, 0);
 		i = 0;
 		for (std::vector<GROUND>::iterator it = ground.begin(); it != ground.end(); i++, it++)
 		{
@@ -666,8 +590,8 @@ void mainCharacter()
 			{
 				if (shapeSprite.getPosition().y + shapeSprite.getTextureRect().height - 1 > ground[i].ground.getPosition().y)
 				{
-					shapeSprite.move(0.18f, 0.f);
-					if ((view.getCenter().x - shapeSprite.getPosition().x >= -16) && view.getCenter().x - 540 > startx)view.move(0.18, 0);
+					shapeSprite.move(0.18f * Speed, 0.f);
+					if ((view.getCenter().x - shapeSprite.getPosition().x >= -16) && view.getCenter().x - 540 > startx)view.move(0.18 * Speed, 0);
 					break;
 				}
 			}
@@ -678,8 +602,8 @@ void mainCharacter()
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)&&shapeSprite.getPosition().x+32<endx&& !sf::Keyboard::isKeyPressed(sf::Keyboard::A))
 	{
 		RH = 1;
-		shapeSprite.move(.18f, 0.f);
-		if ((view.getCenter().x - shapeSprite.getPosition().x <= 16) && view.getCenter().x + 540 < endx)view.move(.18, 0);
+		shapeSprite.move(.18f * Speed, 0.f);
+		if ((view.getCenter().x - shapeSprite.getPosition().x <= 16) && view.getCenter().x + 540 < endx)view.move(.18 * Speed, 0);
 		i = 0;
 		for (std::vector<GROUND>::iterator it = ground.begin(); it != ground.end(); i++, it++)
 		{
@@ -687,8 +611,8 @@ void mainCharacter()
 			{
 				if (shapeSprite.getPosition().y + shapeSprite.getTextureRect().height-1 > ground[i].ground.getPosition().y)
 				{
-					shapeSprite.move(-0.18f, 0.f);
-					if ((view.getCenter().x - shapeSprite.getPosition().x <= 16) && view.getCenter().x + 540 < endx)view.move(-18, 0);
+					shapeSprite.move(-0.18f * Speed, 0.f);
+					if ((view.getCenter().x - shapeSprite.getPosition().x <= 16) && view.getCenter().x + 540 < endx)view.move(-.18 * Speed, 0);
 					break;
 				}
 			}
@@ -813,6 +737,7 @@ void mainCharacter()
 					shapeSprite.move(0.f, -(shapeSprite.getPosition().y - ground[i].ground.getPosition().y));
 				}
 				down = 0;
+				std::cout << i;
 			}
 		}
 		if (RH == 1)shapeSprite.setTextureRect(sf::IntRect(372, 236, 42, 55));
@@ -1095,11 +1020,11 @@ void shoot()
 		}
 		if (BH == 1)
 		{
-			Bullet.move(0.25, 0);
+			Bullet.move(0.25 * Speed, 0);
 		}
 		else
 		{
-			Bullet.move(-0.25, 0);
+			Bullet.move(-0.25 * Speed, 0);
 		}
 		if (bullet == 2)
 		{
@@ -1220,14 +1145,16 @@ void shoot()
 void setText()
 {
 	tScore = "SCORE ";
-	tScore.insert(6, changeNtoS(score, 4));
+	if(score<10000)tScore.insert(6, changeNtoS(score, 4));
+	else tScore.insert(6, changeNtoS(score, 5));
 	textScore.setString(tScore);
-	textScore.setPosition(view.getCenter().x - 510, 5);
+	textScore.setPosition(view.getCenter().x - 510, 0);
 
 	tFish = "X ";
-	tFish.insert(2, changeNtoS(fish, 2));
+	if(fish<100)tFish.insert(2, changeNtoS(fish, 2));
+	else tFish.insert(2, changeNtoS(fish, 3));
 	textFish.setString(tFish);
-	textFish.setPosition(view.getCenter().x - 110 , 5);
+	textFish.setPosition(view.getCenter().x - 110 , 0);
 
 	tFishbone = "X ";
 	if(fishbonecase == 0)tFishbone.insert(2, changeNtoS(fishbone, 2));
@@ -1254,7 +1181,7 @@ void setText()
 		}
 	}
 	textFishbone.setString(tFishbone);
-	textFishbone.setPosition(view.getCenter().x + 90, 5);
+	textFishbone.setPosition(view.getCenter().x + 90, 0);
 
 	tHP = "X ";
 	if(potion == 0)tHP.insert(2, changeNtoS(HP,2));
@@ -1280,7 +1207,7 @@ void setText()
 		}
 	}
 	textHP.setString(tHP);
-	textHP.setPosition(view.getCenter().x+280,5);
+	textHP.setPosition(view.getCenter().x+280,0);
 }
 
 std::string changeNtoS(int num,int zero)
@@ -1456,7 +1383,7 @@ void loadTexture()
 	{
 		std::cout << "claw Load failed " << std::endl;
 	}
-	if (!font.loadFromFile("fonts/#glidepath.ttf"))
+	if (!font.loadFromFile("fonts/ARCADECLASSIC.TTF"))//("fonts/#glidepath.ttf"))
 	{
 		std::cout << "fonts Load failed " << std::endl;
 	}
@@ -1508,9 +1435,25 @@ void loadTexture()
 	{
 		std::cout << "inventory Load failed " << std::endl;
 	}
-	if (!ground1Texture.loadFromFile("a.png"))
+	if (!ground1Texture.loadFromFile("maps/block1.png"))
 	{
-		std::cout << "ground1 Load failed " << std::endl;
+		std::cout << "block1 Load failed " << std::endl;
+	}
+	if (!underGround1Texture.loadFromFile("maps/under1.png"))
+	{
+		std::cout << "under1 Load failed " << std::endl;
+	}
+	if (!menuBGTexture.loadFromFile("assets/menuBG.png"))
+	{
+		std::cout << "menuBG Load failed " << std::endl;
+	}
+	if (!exitBGTexture.loadFromFile("assets/exitBG.png"))
+	{
+		std::cout << "exitBG Load failed " << std::endl;
+	}
+	if (!gameBG1Texture.loadFromFile("maps/gameBG.png"))
+	{
+		std::cout << "gameBG Load failed " << std::endl;
 	}
 }
 
@@ -1554,60 +1497,73 @@ void firstTextSet()
 	textScore.setFont(font);
 	textScore.setFillColor(sf::Color::White);
 	textScore.setOutlineColor(sf::Color::Black);
-	textScore.setCharacterSize(40);
+	textScore.setCharacterSize(50);
 	textScore.setStyle(sf::Text::Bold);
 
 	textFish.setFont(font);
 	textFish.setFillColor(sf::Color::White);
 	textFish.setOutlineColor(sf::Color::Black);
-	textFish.setCharacterSize(40);
+	textFish.setCharacterSize(50);
 	textFish.setStyle(sf::Text::Bold);
 
 	textFishbone.setFont(font);
 	textFishbone.setFillColor(sf::Color::White);
 	textFishbone.setOutlineColor(sf::Color::Black);
-	textFishbone.setCharacterSize(40);
+	textFishbone.setCharacterSize(50);
 	textFishbone.setStyle(sf::Text::Bold);
 
 	textHP.setFont(font);
 	textHP.setFillColor(sf::Color::White);
 	textHP.setOutlineColor(sf::Color::Black);
-	textHP.setCharacterSize(40);
+	textHP.setCharacterSize(50);
 	textHP.setStyle(sf::Text::Bold);
 }
 
 void setGround1()
-{
-	ground.push_back(GROUND(1200.0, 32.0, 0.0, 600.0,1)); // 0
-	ground.push_back(GROUND(300.0, 32.0, 200.0, 400.0, 1)); // 1
-	ground.push_back(GROUND(200.0, 32.0, 900.0, 568.0, 1)); // 2
-	ground.push_back(GROUND(1600.0, 32.0, 1200.0, 632.0, 1)); // 3
-	ground.push_back(GROUND(32.0, 232.0, 2800.0, 432.0, 1)); // 4
-	ground.push_back(GROUND(2000.0, 32.0, 1500.0, 432.0, 1)); // 5
-	ground.push_back(GROUND(100.0, 32.0, 0.0, 568.0, 1)); // 6
+{// if intersect posx -= 9.5
+//  ground.push_back(GROUND(sizex, sizey,	posx, posy,		g,	underground)); 
+	ground.push_back(GROUND(1600.0, 32.0,	1210.0, 632.0,	1,	1)); // 0
+	ground.push_back(GROUND(1216.0, 32.0,	0.0,	600.0,	1,	1)); // 1
+	ground.push_back(GROUND(96.0,	32.0,	0.0,	568.0,	1,	1)); // 2
+	ground.push_back(GROUND(288.0,	32.0,	200.0,	400.0,	1,	0)); // 3
+	ground.push_back(GROUND(192.0,	32.0,	950.5,	568.0,	1,	1)); // 4
+	ground.push_back(GROUND(32.0,	232.0,	2778.0,	433.0,	1,	0)); // 5 I
+	ground.push_back(GROUND(1472.0, 32.0,	1306.0, 432.0,	1,	0)); // 6
+	ground.push_back(GROUND(992.0,	32.0,	3088.5, 658.0,	1,	1)); // 7
+	ground.push_back(GROUND(32.0,	328.0,	3066.0,	432.0,	1,	0)); // 8 I
+	ground.push_back(GROUND(320.0,	32.0,	2780.0, 368.0,	1,	1)); // 9
 }
 
 void setMonster1()
 {
-	NBear[0].set(300, 400); // g1
-	NBear[1].set(200, 600); // g0
-	NBear[2].set(1000, 568); // g2
-	NBear[3].set(1400, 632); // g3
-	NBear[4].set(2500, 632); // g3
-	NBear[5].set(2000, 632); // g3
-	NBear[6].set(2250, 632); // g3
-	NBear[7].set(1750, 432); // g5
-	NBear[8].set(2000, 432); // g5
-	NBear[9].set(2500, 432); // g5
+	NBear[0].set(300, 400); // g3
+	NBear[1].set(200, 600); // g1
+	NBear[2].set(1000, 568); // g4
+	NBear[3].set(1400, 632); // g0
+	NBear[4].set(2500, 632); // g0
+	NBear[5].set(2000, 632); // g0
+	NBear[6].set(2250, 632); // g0
+	NBear[7].set(1750, 432); // g6
+	NBear[8].set(2000, 432); // g6
+	NBear[9].set(2500, 432); // g6
 	
 	TBear[0].set(300, 400); // g1
+	TBear[1].set(2886, 368); // g9
+	TBear[2].set(2994, 368); // g9
 }
 
 void setFish1()
 {
 	FISH[0].set(75, 400);
 	FISH[1].set(250, 250);
-	FISH[2].set(350, 250);
+	FISH[2].set(400, 250);
+	FISH[3].set(325, 475);
+	FISH[4].set(550, 425);
+	FISH[5].set(650, 425);
+	FISH[6].set(750, 425);
+	FISH[7].set(950, 400);
+	FISH[8].set(1018.75, 350);
+	FISH[9].set(1087.5, 400);
 }
 
 void collectFish()
@@ -1664,4 +1620,402 @@ void setHead()
 	item2.setPosition(view.getCenter().x + 477, 16);
 	item3.setPosition(view.getCenter().x + 474, 14);
 	setText();
+}
+
+void stage1()
+{
+
+	startx = 0;
+	endx = 5000;
+	shapeSprite.setPosition(spawn);
+	gameBG.setTexture(gameBG1Texture);
+	gameBG.setTextureRect(sf::IntRect(0, 0, 5760, 720));
+	setGround1();
+	setMonster1();
+	setFish1();
+	setChest1();
+}
+
+void start()
+{
+	reset();
+	setSprite();
+	firstTextSet();
+	loadTexture();
+	fish = 0;
+	fishbone = 2;
+	HP = 3;
+	score = 0;
+	cItem = 0;
+	exitBG.setTexture(exitBGTexture);
+	exitBG.setTextureRect(sf::IntRect(0, 0, 1050, 686));
+}
+
+void reset()
+{
+	for (int i = 0; i < nb; i++)
+	{
+		NBear[i].re();
+	}
+	for (int i = 0; i < tb; i++)
+	{
+		TBear[i].re();
+	}
+	for (int i = 0; i < fb; i++)
+	{
+		FISHBONE[i].re();
+	}
+	for (int i = 0; i < f; i++)
+	{
+		FISH[i].re();
+	}
+	g = 0;
+	while (!ground.empty())
+	{
+		ground.erase(ground.begin());
+	}
+	for (int i = 0; i < it; i++)
+	{
+		ITEM[i].re();
+	}
+	attack = 0;
+	bullet = 0;
+	potion = 0;
+	fishbonecase = 0;
+	animation = 0, Ranimation = 0, Lanimation = 0;
+	RH = 1;
+	window.clear();
+	view = startView;
+}
+
+void leaderboard()
+{
+	window.clear();
+	while (window.isOpen())
+	{
+
+	}
+}
+
+void MENU()
+{
+	int menu = 3;
+	startM = clock();
+	for (int i = 0; i < 3; i++)
+	{
+		Menu[i].setFont(font);
+		Menu[i].setFillColor(sf::Color::White);
+		Menu[i].setOutlineColor(sf::Color::Black);
+		Menu[i].setCharacterSize(110);
+		Menu[i].setStyle(sf::Text::Bold);
+	}
+	Menu[0].setString("PLAY");
+	Menu[0].setPosition(sf::Vector2f(430, 80));
+
+	Menu[1].setString("LEADERBOARD");
+	Menu[1].setPosition(sf::Vector2f(210, 280));
+
+	Menu[2].setString("EXIT");
+	Menu[2].setPosition(sf::Vector2f(430, 480));
+	while (window.isOpen()) // Menu
+	{
+		sf::Event event;
+		if (window.pollEvent(event)) {}
+		endt = clock();
+		switch (menu)
+		{
+			case 0:
+			{
+				Menu[0].setFillColor(sf::Color::Red);
+				Menu[1].setFillColor(sf::Color::White);
+				Menu[2].setFillColor(sf::Color::White);
+				if (sf::Keyboard::isKeyPressed(sf::Keyboard::Enter) || sf::Keyboard::isKeyPressed(sf::Keyboard::E))
+				{
+					close = 2;
+				}
+				break;
+			}
+
+			case 1:
+			{
+				Menu[0].setFillColor(sf::Color::White);
+				Menu[1].setFillColor(sf::Color::Red);
+				Menu[2].setFillColor(sf::Color::White);
+				if (sf::Keyboard::isKeyPressed(sf::Keyboard::Enter) || sf::Keyboard::isKeyPressed(sf::Keyboard::E))
+				{
+					leaderboard();
+				}
+				break;
+			}
+
+			case 2:
+			{
+				Menu[0].setFillColor(sf::Color::White);
+				Menu[1].setFillColor(sf::Color::White);
+				Menu[2].setFillColor(sf::Color::Red);
+				if (sf::Keyboard::isKeyPressed(sf::Keyboard::Enter) || sf::Keyboard::isKeyPressed(sf::Keyboard::E))
+				{
+					exitFromMenu();
+				}
+				break;
+			}
+		}
+		if ((double)(endt - startM) / CLOCKS_PER_SEC > 0.2)
+		{
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
+			{
+				if (menu == 3)menu = 0;
+				else
+				{
+					menu--;
+					if (menu < 0)menu = 2;
+				}
+				startM = clock();
+			}
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::S))
+			{
+				if (menu == 3)menu = 2;
+				else
+				{
+					menu++;
+					if (menu > 2)menu = 0;
+				}
+				startM = clock();
+			}
+		}
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape))
+		{
+			exitFromMenu();
+		}
+		window.draw(menuBG);
+		for (int i = 0; i < 3; i++)
+		{
+			window.draw(Menu[i]);
+		}
+		window.display();
+		window.clear();
+		if (close == 2)break;
+	}
+}
+
+void exitFromMenu()
+{
+	while (sf::Keyboard::isKeyPressed(sf::Keyboard::Enter) || sf::Keyboard::isKeyPressed(sf::Keyboard::Escape) || sf::Keyboard::isKeyPressed(sf::Keyboard::E));
+	int exit = 2;
+	exitBG.setPosition(window.getView().getCenter().x - 525, 20);
+	startEx = clock();
+	for (int i = 0; i < 3; i++)
+	{
+		Exit[i].setFont(font);
+		Exit[i].setFillColor(sf::Color::White);
+		Exit[i].setOutlineColor(sf::Color::Black);
+		Exit[i].setCharacterSize(125);
+		Exit[i].setStyle(sf::Text::Bold);
+	}
+	Exit[0].setCharacterSize(145);
+	Exit[0].setString("ARE YOU SURE !");
+	Exit[0].setPosition(sf::Vector2f(window.getView().getCenter().x - 462.5, 130));
+
+	Exit[1].setString("YES");
+	Exit[1].setPosition(sf::Vector2f(window.getView().getCenter().x - 325, 330));
+
+	Exit[2].setString("NO");
+	Exit[2].setPosition(sf::Vector2f(window.getView().getCenter().x + 175, 330));
+	while (window.isOpen())
+	{
+		int closeEx = 0;
+		sf::Event event;
+		if (window.pollEvent(event)) {}
+		endt = clock();
+		switch (exit)
+		{
+			case 1:
+			{
+				Exit[1].setFillColor(sf::Color::Red);
+				Exit[2].setFillColor(sf::Color::White);
+				if (sf::Keyboard::isKeyPressed(sf::Keyboard::Enter) || sf::Keyboard::isKeyPressed(sf::Keyboard::E))
+				{
+					window.close();
+					close = 1;
+				}
+				break;
+			}
+
+			case 2:
+			{
+				Exit[1].setFillColor(sf::Color::White);
+				Exit[2].setFillColor(sf::Color::Red);
+				if (sf::Keyboard::isKeyPressed(sf::Keyboard::Enter) || sf::Keyboard::isKeyPressed(sf::Keyboard::E))
+				{
+					closeEx = 1;
+					while (sf::Keyboard::isKeyPressed(sf::Keyboard::Enter) || sf::Keyboard::isKeyPressed(sf::Keyboard::E));
+				}
+				break;
+			}
+		}
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape))
+		{
+			closeEx = 1;
+			while (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape));
+		}
+		if ((double)(endt - startEx) / CLOCKS_PER_SEC > 0.2)
+		{
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::A))
+			{
+				exit--;
+				if (exit < 1)exit = 2;
+				startEx = clock();
+			}
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
+			{
+				exit++;
+				if (exit > 2)exit = 1;
+				startEx = clock();
+			}
+		}
+		window.draw(menuBG);
+		for (int i = 0; i < 3; i++)
+		{
+			window.draw(Menu[i]);
+		}
+		window.draw(exitBG);
+		for (int i = 0; i < 3; i++)
+		{
+			window.draw(Exit[i]);
+		}
+		window.display();
+		window.clear();
+		if (closeEx == 1)break;
+	}
+}
+
+void gameDraw()
+{
+	window.draw(gameBG);
+	for (int i = 0; i < ch; i++)
+	{
+		if (CHEST[i].state > 0)window.draw(CHEST[i].body);
+	}
+	if (state == 0 || state == 2)window.draw(shapeSprite);
+	window.draw(inventory1);
+	window.draw(inventory2);
+	window.draw(textScore);
+	window.draw(textFish);
+	window.draw(textFishbone);
+	window.draw(textHP);
+	window.draw(heart);
+	window.draw(fishForShow);
+	window.draw(fishboneForShow);
+	if (cItem == 2) { window.draw(item2); }
+	else if (cItem == 3) { window.draw(item3); }
+	for (int i = 0; i < nb; i++)
+	{
+		if (NBear[i].HP > 0)
+		{
+			window.draw(NBear[i].body);
+		}
+	}
+	for (int i = 0; i < tb; i++)
+	{
+		if (TBear[i].HP == -50) {}
+		else if (TBear[i].th < 3 && TBear[i].th > 0)
+		{
+			window.draw(TBear[i].stick);
+		}
+	}
+	for (int i = 0; i < tb; i++)
+	{
+		if (TBear[i].HP > 0)
+		{
+			window.draw(TBear[i].body);
+		}
+	}
+	if (bullet < 3 && bullet > 0) window.draw(Bullet);
+	if (attack < 4 && attack > 0)window.draw(attackSprite);
+	for (int i = 0; i < it; i++)
+	{
+		if (ITEM[i].state > 0)
+		{
+			window.draw(ITEM[i].body);
+		}
+	}
+	for (int i = 0; i < f; i++)
+	{
+		if (FISH[i].state == 1)window.draw(FISH[i].body);
+	}
+	for (int i = 0; i < fb; i++)
+	{
+		if (FISHBONE[i].state == 1)window.draw(FISHBONE[i].body);
+	}
+	for (std::vector<GROUND>::iterator it = ground.begin(); it != ground.end(); it++)
+	{
+		window.draw(it->ground);
+		window.draw(it->underGround);
+	}
+	window.display();
+	window.clear();
+}
+
+void gameCal()
+{
+	setHead();
+	window.setView(view);
+	endt = clock();
+	mainCharacter();
+	for (int i = 0; i < nb; i++)
+	{
+		if (NBear[i].HP > 0)
+		{
+			NBear[i].move();
+		}
+		else if (NBear[i].HP == -50) {}
+		else
+		{
+			NBear[i].re();
+		}
+	}
+	for (int i = 0; i < tb; i++)
+	{
+		if (TBear[i].HP > 0)
+		{
+			TBear[i].move();
+			TBear[i].shot();
+		}
+		else if (TBear[i].HP == -50) {}
+		else if (TBear[i].HP <= 0)
+		{
+			TBear[i].re();
+		}
+	}
+	if (bullet > 0)
+	{
+		shoot();
+	}
+	if (attack > 0)
+	{
+		scratch();
+	}
+	for (int i = 0; i < it; i++)
+	{
+		if (ITEM[i].state > 0)
+		{
+			ITEM[i].move();
+		}
+	}
+	damageCal();
+	collectFish();
+}
+
+void gamePause()
+{
+	while (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape));
+	while (1)
+	{
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape))
+		{
+			while (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape));
+			window.close();
+			break;
+		}
+	}
 }

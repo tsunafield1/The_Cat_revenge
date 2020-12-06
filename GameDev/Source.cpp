@@ -1,12 +1,15 @@
+#define _CRT_SECURE_NO_WARNINGS
 #include <SFML/Graphics.hpp>
 #include <iostream>
 #include <time.h>
 #include <string>
+#include <map>
+#include <math.h>
 
-const int nb = 20, tb = 20; //  number of normal bear , number of throw bear
-const int f = 30, fb = 20, it = 10; // number of fish , number of fishbone , number of item
+const int nb = 40, tb = 30; //  number of normal bear , number of throw bear
+const int f = 30, fb = 40, it = 10; // number of fish , number of fishbone , number of item
 const int ch = 2; // number of chest
-double Speed = 1;
+double Speed = 1.25;
 double startt, endt,startAttack,startB,startM,startEx,dif;
 double startP,startF; // start Potion, start fishbonecase
 bool potion = 0; // state of potion
@@ -28,9 +31,12 @@ int RH = 1,BH,AH; // recent head of main character
 int bullet = 0; // bullet status
 int bx,endx,startx; // x of bullet,Highest x,Lowest of x 
 int close = 0;
+int moveView = 0;
 sf::Text textHP,textScore,textFish,textFishbone;
 sf::Text Exit[3];
 sf::Text Menu[3];
+sf::Text Leaderboard[7];
+sf::Text Score[6];
 sf::Font font;
 sf::Vector2f spawn = { 30, 450 }; // spawn point
 sf::Sprite shapeSprite; // main character
@@ -40,14 +46,16 @@ sf::Sprite test;
 sf::Sprite inventory1,inventory2,item2,item3;
 sf::Sprite fishForShow,fishboneForShow;
 sf::Sprite Bullet;
-sf::Sprite menuBG, exitBG,gameBG;
+sf::Sprite menuBG, exitBG,gameBG,leaderBG;
 sf::View view,startView;
 sf::Texture playerTextureRight, playerTextureLeft, fishboneTexture, attackTexture,stickTexture,fishTexture,chestTexture,item1Texture, item2Texture, item3Texture;
 sf::Texture heartTexture,fishForShowTexture, fishboneForShowTexture,normalBearTexture,throwBearTexture,fishboneDropTexture,inventoryTexture;
-sf::Texture ground1Texture, underGround1Texture;
-sf::Texture menuBGTexture, exitBGTexture,gameBG1Texture;
+sf::Texture ground1Texture, underGround1Texture, bigstickTexture, boss1rightTexture, boss1leftTexture;
+sf::Texture menuBGTexture, exitBGTexture,gameBG1Texture, leaderBGTexture;
 double speed = 0; // use when jumping or falling
 bool down = 0, up = 0; // state of jumping
+FILE* fp;
+std::map<int, std::string> data;
 
 class GROUND
 {
@@ -220,6 +228,7 @@ public:
 		}
 	}
 };
+normalBear NBear[nb];
 class throwBear
 {
 public:
@@ -377,6 +386,283 @@ public:
 		stick.setTextureRect({ 0,0,0,0 });
 	}
 };
+throwBear TBear[tb];
+class boss1Bear
+{
+public:
+
+	clock_t start = 0,skill;
+	int spw;
+	int sx;
+	int head; // 1 = Right , 2 = Left
+	int HP = -50;
+	int th = 0;
+	int roar = 0;
+	int animation = 0;
+	int random = 3;
+	float width = 89, height = 89;
+	sf::Sprite body;
+	sf::Sprite stick;
+	void re()
+	{
+		body.setPosition(-100, -100);
+		stick.setPosition(-100, -100);
+		stick.setTextureRect({ 0,0,0,0 });
+		this->HP = -50;
+	}
+	void set(float x, float y)
+	{
+		if (HP == -50) {
+			stick.setTexture(bigstickTexture);
+			stick.setPosition(-100, -100);
+			stick.setTextureRect({ 0,0,0,0 });
+			body.setTexture(boss1leftTexture);
+			body.setTextureRect(sf::IntRect(width * ((animation / 250) % 3), 0, width, height));
+		}
+		body.setPosition(x, y - height + 0.0001);
+		this->HP = 200;
+	}
+	void move() // turn left or right
+	{
+		animation++;
+		if (shapeSprite.getPosition().x > body.getPosition().x + 10)
+		{
+			head = 1;
+			body.setTexture(boss1rightTexture);
+			body.setTextureRect(sf::IntRect(711 - width * ((animation / 250) % 3), 0, width, height));
+			// turn right
+		}
+		else
+		{
+			head = 2;
+			body.setTexture(boss1leftTexture);
+			body.setTextureRect(sf::IntRect(width * ((animation / 250) % 3), 0, width, height));
+			// turn left
+		}
+		if (shapeSprite.getPosition().x  > body.getPosition().x)
+		{
+			body.move(0.08, 0);
+		}
+		else
+		{
+			body.move(-0.08, 0);
+		}
+		if (double(endt - skill) / CLOCKS_PER_SEC >= 15)
+		{
+			random = rand();
+			random %= 2;
+			spw = 0;
+			roar = 0;
+			skill = clock();
+			start = clock();
+		}
+		if (random == 0)
+		{
+			dif = (endt - start) / CLOCKS_PER_SEC;
+			if (dif <= 7 && shapeSprite.getPosition().x > body.getPosition().x) body.move(-0.08, 0);
+			else if (dif <= 7) body.move(0.08, 0);
+			if (dif <= 2 && head == 1) body.setTextureRect(sf::IntRect(711 - width * ((animation / 250) % 3), 89 * 3, width, height));
+			if (dif <= 2 && head == 2) body.setTextureRect(sf::IntRect(width * ((animation / 250) % 3), 89 * 3, width, height));
+			else if (dif <= 4 && dif > 2)
+			{
+				if (head == 1 && th == 0)
+				{
+					if (body.getPosition().x - shapeSprite.getPosition().x > -1000)
+					{
+						animation = 0;
+						stick.setTextureRect(sf::IntRect(0, 0, 60, 48));
+						stick.setPosition(body.getPosition().x + width - 6, body.getPosition().y + 14);
+						sx = stick.getPosition().x;
+						th = -1;
+						start = clock();
+					}
+				}
+				else if (head == 2 && th == 0)
+				{
+					if (body.getPosition().x - shapeSprite.getPosition().x < 1000)
+					{
+						animation = 0;
+						stick.setTextureRect(sf::IntRect(0, 0, 60, 48));
+						stick.setPosition(body.getPosition().x - 54, body.getPosition().y + 14);
+						sx = stick.getPosition().x;
+						th = -2;
+						start = clock();
+					}
+				}
+				if (th == -1)
+				{
+					if (dif <= 2.1) body.setTextureRect(sf::IntRect(711, 89, width, height));
+					else if (dif <= 2.2) body.setTextureRect(sf::IntRect(711 - width * 3, 89, width, height));
+					else if (dif <= 2.3) body.setTextureRect(sf::IntRect(711 - width * 5, 89, width, height));
+					else {
+						th = 1;
+						start = clock();
+					}
+				}
+				else if (th == -2)
+				{
+					if (dif <= 2.1) body.setTextureRect(sf::IntRect(0, 89, width, height));
+					else if (dif <= 2.2) body.setTextureRect(sf::IntRect(width * 3, 89, width, height));
+					else if (dif <= 2.3) body.setTextureRect(sf::IntRect(width * 5, 89, width, height));
+					else {
+						th = 2;
+						start = clock();
+					}
+				}
+			}
+		}
+		else if (random == 1)
+		{
+			dif = (endt - start) / CLOCKS_PER_SEC;
+			if (dif <= 7 && shapeSprite.getPosition().x > body.getPosition().x) body.move(-0.08, 0);
+			else if (dif <= 7) body.move(0.08, 0);
+			if (head == 1)
+			{
+				if(dif <= 2) body.setTextureRect(sf::IntRect(711 - width * ((animation / 250) % 3), 89*3, width, height));
+				else if (dif <= 4)
+				{
+					body.setTextureRect(sf::IntRect(711 - width * 3, 89*3+1, width, height));
+					if (roar == 0)
+					{
+						view.move(20, 0);
+						roar = 1;
+					}
+					else
+					{
+						view.move(-20, 0);
+						roar = 0;
+					}
+				}
+				else if (dif <= 5 && spw < 2)
+				{
+					if (roar == 1)
+					{
+						view.move(-20, 0);
+						roar = 0;
+					}
+					for (int i = 0; i < nb; i++)
+					{
+						if (NBear[i].HP == -50)
+						{
+							NBear[i].set(4800, 600);
+							spw++;
+							break;
+						}
+					}
+					for (int i = 0; i < nb; i++)
+					{
+						if (NBear[i].HP == -50)
+						{
+							NBear[i].set(3800, 600);
+							spw++;
+							break;
+						}
+					}
+				}
+			}
+			else
+			{
+				if (dif <= 2) body.setTextureRect(sf::IntRect(width * ((animation / 250) % 3), 89*3, width, height));
+				else if (dif <= 4)
+				{
+					body.setTextureRect(sf::IntRect(width * 3 , 89*3 +1, width, height));
+					if (roar == 0)
+					{
+						view.move(20, 0);
+						roar = 1;
+					}
+					else
+					{
+						view.move(-20, 0);
+						roar = 0;
+					}
+				}
+				else if (dif <= 5 && spw < 2)
+				{
+					if (roar == 1)
+					{
+						view.move(-20, 0);
+						roar = 0;
+					}
+					for (int i = 0; i < nb; i++)
+					{
+						if (NBear[i].HP == -50)
+						{
+							NBear[i].set(4800, 600);
+							spw++;
+							break;
+						}
+					}
+					for (int i = 0; i < nb; i++)
+					{
+						if (NBear[i].HP == -50)
+						{
+							NBear[i].set(3800, 600);
+							spw++;
+							break;
+						}
+					}
+				}
+			}
+		}
+	}
+	void stickSet(int a)
+	{
+		if (a == 0)
+		{
+			stick.setTextureRect(sf::IntRect(0, 0, 60, 48));
+		}
+		else if (a == 1)
+		{
+			stick.setTextureRect(sf::IntRect(60, 0, 48, 60));
+		}
+		else if (a == 2)
+		{
+			stick.setTextureRect(sf::IntRect(108, 0, 60, 48));
+		}
+		else
+		{
+			stick.setTextureRect(sf::IntRect(168, 0, 48, 60));
+		}
+	}
+	void shot()
+	{
+		dif = (endt - start) / CLOCKS_PER_SEC;
+		int a = ((int)(dif / 0.075)) % 4;
+		if (th == 1)
+		{
+			stickSet(a);
+			stick.move(0.25 * Speed, 0);
+			if (stick.getPosition().x - sx > 600)reStick();
+		}
+		else if (th == 2)
+		{
+			stickSet(3 - a);
+			stick.move(-0.25 * Speed, 0);
+			if (stick.getPosition().x - sx < -600)reStick();
+		}
+		i = 0;
+		for (std::vector<GROUND>::iterator it = ground.begin(); it != ground.end(); i++, it++)
+		{
+			if (stick.getGlobalBounds().intersects(ground[i].ground.getGlobalBounds()))
+			{
+				reStick();
+			}
+		}
+		if (dif > 6 && th > 0)
+		{
+			random = 3;
+			th = 0;
+		}
+	}
+	void reStick()
+	{
+		th = 3;
+		stick.setPosition(-1, -1);
+		stick.setTextureRect({ 0,0,0,0 });
+	}
+};
+boss1Bear Boss1;
 class item
 {
 public:
@@ -500,6 +786,7 @@ void shoot();
 void setText();
 void showText();
 std::string changeNtoS(int ,int);
+std::string changeNtoS(int);
 void scratch();
 void loadTexture();
 void setSprite();
@@ -520,9 +807,10 @@ void exitFromMenu();
 void gameDraw();
 void gameCal();
 void gamePause();
+void startdata();
+void gameover();
+void stage1boss();
 
-normalBear NBear[nb];
-throwBear TBear[tb];
 Fish FISH[f];
 chest CHEST[ch];
 sf::RenderWindow window(sf::VideoMode(1080, 720), "Test", sf::Style::Default);
@@ -534,8 +822,10 @@ int main()
 	start();
 	MENU();
 	if (close == 1)return 0;
-	//view.move(900, 0);
 	stage1();
+	/*int mv = 3000;
+	view.move(mv, 0);
+	shapeSprite.move(mv+500,0);*/
 	while (window.isOpen())
 	{
 		sf::Event event;
@@ -553,12 +843,18 @@ int main()
 			window.draw(test);
 		//*/
 		gameCal();
+		stage1boss();
+		if (shapeSprite.getPosition().x > 5000)
+		{
+			break;
+		}
 		gameDraw();
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape))
 		{
 			gamePause();
 		}
 	}
+	reset();
 	return 0;
 }
 
@@ -567,12 +863,12 @@ void mainCharacter()
 	if (RH == 1) 
 	{
 		shapeSprite.setTexture(playerTextureRight);
-		shapeSprite.setTextureRect(sf::IntRect(36 + 39 * ((animation / 150) % 6), 22, 40, 54));
+		shapeSprite.setTextureRect(sf::IntRect(36 + (39 * ((animation / (150 / (int)Speed)) % 6)), 22, 40, 54));
 	}
 	else
 	{
 		shapeSprite.setTexture(playerTextureLeft);
-		shapeSprite.setTextureRect(sf::IntRect(626 - 40 - (36 + 39 * ((animation / 150) % 6)), 22, 40, 54));
+		shapeSprite.setTextureRect(sf::IntRect(626 - 40 - (36 + 39 * ((animation / (150 / (int)Speed)) % 6)), 22, 40, 54));
 	}
 	gr = 0;
 	animation++;
@@ -582,42 +878,42 @@ void mainCharacter()
 	{
 		RH = 2;
 		shapeSprite.move(-0.18f * Speed, 0.f);
-		if ((view.getCenter().x - shapeSprite.getPosition().x >= -16) && view.getCenter().x - 540 > startx)view.move(-0.18* Speed, 0);
+		if ((view.getCenter().x - shapeSprite.getPosition().x >= -16) && view.getCenter().x - 540 > startx && moveView == 0)view.move(-0.18* Speed, 0);
 		i = 0;
 		for (std::vector<GROUND>::iterator it = ground.begin(); it != ground.end(); i++, it++)
 		{
 			if (shapeSprite.getGlobalBounds().intersects(ground[i].ground.getGlobalBounds()))
 			{
-				if (shapeSprite.getPosition().y + shapeSprite.getTextureRect().height - 1 > ground[i].ground.getPosition().y)
+				if (shapeSprite.getPosition().y + shapeSprite.getTextureRect().height - 2 > ground[i].ground.getPosition().y && shapeSprite.getPosition().x > ground[i].ground.getPosition().x )
 				{
 					shapeSprite.move(0.18f * Speed, 0.f);
-					if ((view.getCenter().x - shapeSprite.getPosition().x >= -16) && view.getCenter().x - 540 > startx)view.move(0.18 * Speed, 0);
+					if ((view.getCenter().x - shapeSprite.getPosition().x >= -16) && view.getCenter().x - 540 > startx && moveView == 0)view.move(0.18 * Speed, 0);
 					break;
 				}
 			}
 		}
-		shapeSprite.setTextureRect(sf::IntRect(626-39-(280 + 38 * ((Lanimation / 100) % 6)), 22, 39, 54));
+		shapeSprite.setTextureRect(sf::IntRect(626-39-(280 + 38 * ((Lanimation / (100/ (int)Speed)) % 6)), 22, 39, 54));
 		Ranimation = animation = 0;
 	}
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)&&shapeSprite.getPosition().x+32<endx&& !sf::Keyboard::isKeyPressed(sf::Keyboard::A))
 	{
 		RH = 1;
 		shapeSprite.move(.18f * Speed, 0.f);
-		if ((view.getCenter().x - shapeSprite.getPosition().x <= 16) && view.getCenter().x + 540 < endx)view.move(.18 * Speed, 0);
+		if ((view.getCenter().x - shapeSprite.getPosition().x <= 16) && view.getCenter().x + 540 < endx && moveView == 0)view.move(.18 * Speed, 0);
 		i = 0;
 		for (std::vector<GROUND>::iterator it = ground.begin(); it != ground.end(); i++, it++)
 		{
 			if (shapeSprite.getGlobalBounds().intersects(ground[i].ground.getGlobalBounds()))
 			{
-				if (shapeSprite.getPosition().y + shapeSprite.getTextureRect().height-1 > ground[i].ground.getPosition().y)
+				if (shapeSprite.getPosition().y + shapeSprite.getTextureRect().height-2 > ground[i].ground.getPosition().y && shapeSprite.getPosition().x < ground[i].ground.getPosition().x)
 				{
 					shapeSprite.move(-0.18f * Speed, 0.f);
-					if ((view.getCenter().x - shapeSprite.getPosition().x <= 16) && view.getCenter().x + 540 < endx)view.move(-.18 * Speed, 0);
+					if ((view.getCenter().x - shapeSprite.getPosition().x <= 16) && view.getCenter().x + 540 < endx && moveView == 0)view.move(-.18 * Speed, 0);
 					break;
 				}
 			}
 		}
-		shapeSprite.setTextureRect(sf::IntRect(280 + 38 * ((Ranimation / 100) % 6), 22, 39, 54));
+		shapeSprite.setTextureRect(sf::IntRect(280 + 38 * ((Ranimation / (100 / (int)Speed)) % 6), 22, 39, 54));
 		Lanimation = animation = 0;
 	}
 	if ((sf::Keyboard::isKeyPressed(sf::Keyboard::K) && bullet == 0 && fishbone > 0)||(fishbonecase && sf::Keyboard::isKeyPressed(sf::Keyboard::K)&&bullet == 0))
@@ -633,6 +929,10 @@ void mainCharacter()
 		attack = 1;
 		startAttack = clock();
 	}
+	/*if (sf::Keyboard::isKeyPressed(sf::Keyboard::P))
+	{
+		std::cout << view.getCenter().x << std::endl;
+	}*/
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::E))
 	{
 		bool s = 0;
@@ -684,19 +984,19 @@ void mainCharacter()
 	}
 	if ((sf::Keyboard::isKeyPressed(sf::Keyboard::W)) && !down && !up)
 	{
-		speed = 0.6;
+		speed = 0.9*Speed;
 		up = 1;
 	}
 	if (up)
 	{
-		speed -= 0.00085;
+		speed -= 0.0019125*(Speed*Speed);
 		shapeSprite.move(.0f, -speed);
 		i = 0;
 		for (std::vector<GROUND>::iterator it = ground.begin(); it != ground.end(); i++, it++)
 		{
 			if (shapeSprite.getGlobalBounds().intersects(ground[i].ground.getGlobalBounds()))
 			{
-				if (shapeSprite.getPosition().y > ground[i].ground.getPosition().y)
+				if (shapeSprite.getPosition().y - 2 > ground[i].ground.getPosition().y)
 				{
 					shapeSprite.move(.0f, speed);
 				}
@@ -725,7 +1025,7 @@ void mainCharacter()
 	}
 	if (down)
 	{
-		speed += 0.00085;
+		speed += 0.0019125 *Speed*Speed;
 		shapeSprite.move(0.f, speed);
 		i = 0;
 		for (std::vector<GROUND>::iterator it = ground.begin(); it != ground.end(); i++, it++)
@@ -734,10 +1034,11 @@ void mainCharacter()
 			{
 				if (shapeSprite.getPosition().y > ground[i].ground.getPosition().y)
 				{
-					shapeSprite.move(0.f, -(shapeSprite.getPosition().y - ground[i].ground.getPosition().y));
-				}
+					shapeSprite.move(0.f, shapeSprite.getPosition().y - ground[i].ground.getPosition().y);
+				} 
 				down = 0;
 				std::cout << i;
+				break;
 			}
 		}
 		if (RH == 1)shapeSprite.setTextureRect(sf::IntRect(372, 236, 42, 55));
@@ -823,6 +1124,26 @@ void damageCal()
 						TBear[i].reStick();
 						break;
 					}
+				}
+			}
+			if (state == 0)
+			{
+				if (shapeSprite.getGlobalBounds().intersects(Boss1.body.getGlobalBounds()))
+				{
+					startt = clock();
+					HP--;
+					state = 1;
+					Boss1.HP -= 5;
+				}
+			}
+			if (state == 0)
+			{
+				if (shapeSprite.getGlobalBounds().intersects(Boss1.stick.getGlobalBounds()))
+				{
+					startt = clock();
+					HP--;
+					state = 1;
+					Boss1.reStick();
 				}
 			}
 		}
@@ -934,6 +1255,24 @@ void damageCal()
 						TBear[i].reStick();
 						break;
 					}
+				}
+			}
+			if (state == 0)
+			{
+				if (shapeSprite.getGlobalBounds().intersects(Boss1.body.getGlobalBounds()))
+				{
+					startt = clock();
+					state = 1;
+					Boss1.HP -= 5;
+				}
+			}
+			if (state == 0)
+			{
+				if (shapeSprite.getGlobalBounds().intersects(Boss1.stick.getGlobalBounds()))
+				{
+					startt = clock();
+					state = 1;
+					Boss1.reStick();
 				}
 			}
 		}
@@ -1053,6 +1392,14 @@ void shoot()
 			}
 			if (bullet == 2)
 			{
+				if (Bullet.getGlobalBounds().intersects(Boss1.body.getGlobalBounds()))
+				{
+					bullet = 3;
+					Boss1.HP -= 10;
+				}
+			}
+			if (bullet == 2)
+			{
 				i = 0;
 				for (std::vector<GROUND>::iterator it = ground.begin(); it != ground.end(); i++, it++)
 				{
@@ -1119,6 +1466,14 @@ void shoot()
 						if (TBear[i].HP <= 0) score += 20;
 						break;
 					}
+				}
+			}
+			if (bullet == 2)
+			{
+				if (Bullet.getGlobalBounds().intersects(Boss1.body.getGlobalBounds()))
+				{
+					bullet = 3;
+					Boss1.HP -= 10;
 				}
 			}
 			if (bullet == 2)
@@ -1225,6 +1580,32 @@ std::string changeNtoS(int num,int zero)
 	return a;
 }
 
+std::string changeNtoS(int num)
+{
+	char b[10];
+	int n = num;
+	int index = 0;
+	int max = -1;
+	std::string a = "";
+	while (n > 0)
+	{
+		max++;
+		n /= 10;
+	}
+	n = num;
+	b[max+1] = '\0';
+	while (max>=0)
+	{
+		b[index] = (int)(n / pow(10, max)) + '0';
+		if (max > 0)n %= (int)pow(10, max);
+		else n %= 10;
+		max--;
+		index++;
+	}
+	a.insert(0, b);
+	return a;
+}
+
 void scratch()
 {
 	dif = (endt - startAttack) / CLOCKS_PER_SEC;
@@ -1315,6 +1696,14 @@ void scratch()
 					TBear[i].HP -= attackDamage;
 					if (TBear[i].HP <= 0) score += 20;
 				}
+			}
+		}
+		if (attack == 2)
+		{
+			if (attackSprite.getGlobalBounds().intersects(Boss1.body.getGlobalBounds()))
+			{
+				attack = 3;
+				Boss1.HP -= attackDamage;
 			}
 		}
 	}
@@ -1455,6 +1844,22 @@ void loadTexture()
 	{
 		std::cout << "gameBG Load failed " << std::endl;
 	}
+	if (!leaderBGTexture.loadFromFile("assets/leaderBG.png"))
+	{
+		std::cout << "leaderBG Load failed " << std::endl;
+	}
+	if (!boss1rightTexture.loadFromFile("sprites/boss1right.jpg"))
+	{
+		std::cout << "boss1right Load failed " << std::endl;
+	}
+	if (!boss1leftTexture.loadFromFile("sprites/boss1left.jpg"))
+	{
+		std::cout << "boss1left Load failed " << std::endl;
+	}
+	if (!bigstickTexture.loadFromFile("assets/bigstick.png"))
+	{
+		std::cout << "bigstick Load failed " << std::endl;
+	}
 }
 
 void setSprite()
@@ -1529,9 +1934,14 @@ void setGround1()
 	ground.push_back(GROUND(192.0,	32.0,	950.5,	568.0,	1,	1)); // 4
 	ground.push_back(GROUND(32.0,	232.0,	2778.0,	433.0,	1,	0)); // 5 I
 	ground.push_back(GROUND(1472.0, 32.0,	1306.0, 432.0,	1,	0)); // 6
-	ground.push_back(GROUND(992.0,	32.0,	3088.5, 658.0,	1,	1)); // 7
+	ground.push_back(GROUND(3000.0,	32.0,	3088.5, 632.0,	1,	1)); // 7
 	ground.push_back(GROUND(32.0,	328.0,	3066.0,	432.0,	1,	0)); // 8 I
 	ground.push_back(GROUND(320.0,	32.0,	2780.0, 368.0,	1,	1)); // 9
+	ground.push_back(GROUND(1100.0, 32.0,	3748.0,	600.0,	1,	1)); // 10
+	ground.push_back(GROUND(150.0,	32.0,	3850.0,	400.0,	1,	0)); // 11
+	ground.push_back(GROUND(150.0,	32.0,	4100.0, 400.0,	1,	0)); // 12
+	ground.push_back(GROUND(150.0,	32.0,	4350.0, 400.0,	1,	0)); // 13
+	ground.push_back(GROUND(150.0,	32.0,	4600.0, 400.0,	1,	0)); // 14
 }
 
 void setMonster1()
@@ -1552,8 +1962,10 @@ void setMonster1()
 	NBear[13].set(2500, 432); // g6
 	
 	TBear[0].set(300, 400); // g1
-	TBear[1].set(2886, 368); // g9
-	TBear[2].set(2994, 368); // g9
+	TBear[1].set(2852, 368); // g9
+	TBear[2].set(3026, 368); // g9
+
+	Boss1.set(4700, 600);
 }
 
 void setFish1()
@@ -1646,6 +2058,7 @@ void start()
 	setSprite();
 	firstTextSet();
 	loadTexture();
+	startdata();
 	fish = 0;
 	fishbone = 2;
 	HP = 3;
@@ -1653,6 +2066,8 @@ void start()
 	cItem = 0;
 	exitBG.setTexture(exitBGTexture);
 	exitBG.setTextureRect(sf::IntRect(0, 0, 1050, 686));
+	leaderBG.setTexture(leaderBGTexture);
+	leaderBG.setTextureRect(sf::IntRect(0, 0, 1050, 686));
 }
 
 void reset()
@@ -1690,14 +2105,117 @@ void reset()
 	RH = 1;
 	window.clear();
 	view = startView;
+	moveView = 0;
 }
 
 void leaderboard()
 {
-	window.clear();
+	int leader = 2;
+	int cos = 0;
+	startM = clock();
+	leaderBG.setPosition(window.getView().getCenter().x - 525, 20);
+	Leaderboard[0].setFont(font);
+	Leaderboard[0].setFillColor(sf::Color::White);
+	Leaderboard[0].setOutlineColor(sf::Color::Black);
+	Leaderboard[0].setCharacterSize(100);
+	Leaderboard[0].setStyle(sf::Text::Bold);
+	for (int i = 1; i < 6; i++)
+	{
+		Leaderboard[i].setFont(font);
+		Leaderboard[i].setFillColor(sf::Color::White);
+		Leaderboard[i].setOutlineColor(sf::Color::Black);
+		Leaderboard[i].setCharacterSize(70);
+		Leaderboard[i].setStyle(sf::Text::Bold);
+
+		Score[i].setFont(font);
+		Score[i].setFillColor(sf::Color::White);
+		Score[i].setOutlineColor(sf::Color::Black);
+		Score[i].setCharacterSize(70);
+		Score[i].setStyle(sf::Text::Bold);
+	}
+	Leaderboard[6].setFont(font);
+	Leaderboard[6].setFillColor(sf::Color::White);
+	Leaderboard[6].setOutlineColor(sf::Color::Black);
+	Leaderboard[6].setCharacterSize(110);
+	Leaderboard[6].setStyle(sf::Text::Bold);
+
+	Leaderboard[0].setString("LEADERBOARD");
+	Leaderboard[0].setPosition(sf::Vector2f(230, 20));
+	int i = 5;
+	for (std::map<int, std::string>::iterator it = data.begin(); it != data.end(); it++, i--)
+	{
+		std::string ch;
+		ch.append(it->second);
+		Leaderboard[i].setString(ch);
+
+		ch = "";
+		ch.append(changeNtoS(it->first));
+		Score[i].setString(ch);
+	}
+	Leaderboard[1].setPosition(sf::Vector2f(237.5, 150));
+	Score[1].setPosition(sf::Vector2f(637.5, 150));
+
+	Leaderboard[2].setPosition(sf::Vector2f(237.5, 225));
+	Score[2].setPosition(sf::Vector2f(637.5, 225));
+
+	Leaderboard[3].setPosition(sf::Vector2f(237.5, 300));
+	Score[3].setPosition(sf::Vector2f(637.5, 300));
+
+	Leaderboard[4].setPosition(sf::Vector2f(237.5, 375));
+	Score[4].setPosition(sf::Vector2f(637.5, 375));
+
+	Leaderboard[5].setPosition(sf::Vector2f(237.5, 450));
+	Score[5].setPosition(sf::Vector2f(637.5, 450));
+
+	Leaderboard[6].setString("BACK");
+	Leaderboard[6].setPosition(sf::Vector2f(400, 550));
 	while (window.isOpen())
 	{
-
+		sf::Event event;
+		if (window.pollEvent(event)) {}
+		endt = clock();
+		switch (leader)
+		{
+		case 1:
+		{
+			Leaderboard[6].setFillColor(sf::Color::Red);
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Enter) || sf::Keyboard::isKeyPressed(sf::Keyboard::E))
+			{
+				while (sf::Keyboard::isKeyPressed(sf::Keyboard::Enter) || sf::Keyboard::isKeyPressed(sf::Keyboard::E));
+				window.clear();
+				window.display();
+				cos = 1;
+			}
+			break;
+		}
+		}
+		if ((double)(endt - startM) / CLOCKS_PER_SEC > 0.2)
+		{
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
+			{
+				leader--;
+				if (leader < 1)leader = 1;
+				startM = clock();
+			}
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::S))
+			{
+				leader++;
+				if (leader > 1)leader = 1;
+				startM = clock();
+			}
+		}
+		window.draw(leaderBG);
+		for (int i = 0; i < 7; i++)
+		{
+			window.draw(Leaderboard[i]);
+		}
+		for (int i = 1; i < 6; i++)
+		{
+			window.draw(Score[i]);
+		}
+		if (cos == 1)break;
+		window.display();
+		window.clear();
 	}
 }
 
@@ -1934,6 +2452,8 @@ void gameDraw()
 			window.draw(TBear[i].body);
 		}
 	}
+	window.draw(Boss1.body);
+	window.draw(Boss1.stick);
 	if (bullet < 3 && bullet > 0) window.draw(Bullet);
 	if (attack < 4 && attack > 0)window.draw(attackSprite);
 	for (int i = 0; i < it; i++)
@@ -1991,6 +2511,18 @@ void gameCal()
 			TBear[i].re();
 		}
 	}
+	if (moveView == 1)
+	{
+		if (Boss1.HP > 0)
+		{
+			Boss1.move();
+			Boss1.shot();
+		}
+		else if (Boss1.HP <= 0 && Boss1.HP > -50)
+		{
+			Boss1.re();
+		}
+	}
 	if (bullet > 0)
 	{
 		shoot();
@@ -2020,6 +2552,84 @@ void gamePause()
 			while (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape));
 			window.close();
 			break;
+		}
+	}
+}
+
+void startdata()
+{
+	char a[40];
+	char ch;
+	int b;
+	fp = fopen("highscore/data.txt", "a+");
+	ch = fscanf(fp, "%s", a);
+	fscanf(fp, "%d", &b);
+	while (!data.empty()) data.erase(data.begin());
+	if (ch == EOF)	
+	{
+		fclose(fp);
+		fp = fopen("highscore/data.txt", "w");
+		data.insert(std::pair<int, std::string>(5000, "A"));
+		data.insert(std::pair<int, std::string>(4000, "B"));
+		data.insert(std::pair<int, std::string>(3000, "C"));
+		data.insert(std::pair<int, std::string>(2000, "D"));
+		data.insert(std::pair<int, std::string>(1000, "E"));
+		int i = 0;
+		for (std::map<int, std::string>::iterator it = data.begin();i<5; it++,i++)
+		{
+			for (int j = 0; it->second[j] != '\0'; j++)
+			{
+				fprintf(fp, "%c", it->second[j]);
+			}
+			fprintf(fp, " %d\n",it->first);
+		}
+	}
+	else
+	{
+		while (ch != EOF)
+		{
+			data.insert(std::pair<int, std::string>(b, a));
+			//std::cout << b << ' ' << a << std::endl;
+			fscanf(fp, "%s", a);
+			ch = fscanf(fp, "%d", &b);
+		}
+	}
+	fclose(fp);
+}
+
+void gameover()
+{
+
+}
+
+void stage1boss()
+{
+	while (view.getCenter().x > 3900 && view.getCenter().x < 4300)
+	{
+		startx = 3760;
+		endx = 4840;
+		moveView = 1;
+		view.move(0.5, 0);
+		window.setView(view);
+		setHead();
+		gameDraw();
+		Boss1.skill = clock();
+		for (int i = 0; i < nb; i++) NBear[i].re();
+	}
+	if (Boss1.HP <= 0 && Boss1.HP > -50)
+	{
+		Boss1.re();
+		fish += 20;
+		score += 300;
+		endx = 5075;
+		moveView = 0;
+		while ((view.getCenter().x - shapeSprite.getPosition().x >= -16) && view.getCenter().x - 540 > startx)
+		{
+			view.move(-0.18 * Speed, 0);
+		}
+		while ((view.getCenter().x - shapeSprite.getPosition().x <= 16) && view.getCenter().x + 540 < endx)
+		{
+			view.move(.18 * Speed, 0);
 		}
 	}
 }

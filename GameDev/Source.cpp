@@ -2734,11 +2734,11 @@ void startdata()
 	{
 		fclose(fp);
 		fp = fopen("highscore/data.txt", "w");
-		data.insert(std::pair<int, std::string>(5000, "A"));
-		data.insert(std::pair<int, std::string>(4000, "B"));
-		data.insert(std::pair<int, std::string>(3000, "C"));
-		data.insert(std::pair<int, std::string>(2000, "D"));
-		data.insert(std::pair<int, std::string>(1000, "E"));
+		data.insert(std::pair<int, std::string>(3000, "A"));
+		data.insert(std::pair<int, std::string>(2000, "B"));
+		data.insert(std::pair<int, std::string>(1000, "C"));
+		data.insert(std::pair<int, std::string>(500, "D"));
+		data.insert(std::pair<int, std::string>(200, "E"));
 		int i = 0;
 		for (std::map<int, std::string>::iterator it = data.begin();i<5; it++,i++)
 		{

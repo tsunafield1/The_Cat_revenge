@@ -6,10 +6,10 @@
 #include <map>
 #include <math.h>
 
-const int nb = 40, tb = 30; //  number of normal bear , number of throw bear
-const int f = 30, fb = 40, it = 10; // number of fish , number of fishbone , number of item
+const int nb = 30, tb = 20; //  number of normal bear , number of throw bear
+const int f = 40, fb = 40, it = 7; // number of fish , number of fishbone , number of item
 const int ch = 2; // number of chest
-double Speed = 1.25;
+double Speed = 1.35;
 double startt, endt,startAttack,startB,startM,startEx,dif;
 double startP,startF; // start Potion, start fishbonecase
 bool potion = 0; // state of potion
@@ -57,7 +57,7 @@ sf::Texture playerTextureRight, playerTextureLeft, fishboneTexture, attackTextur
 sf::Texture heartTexture,fishForShowTexture, fishboneForShowTexture, normalBearTexture, throwBearTexture, fishboneDropTexture, inventoryTexture, rngboxTexture, weapon1Texture, weapon2Texture, weapon3Texture;
 sf::Texture ground1Texture, underGround1Texture, bigstickTexture, boss1rightTexture, boss1leftTexture;
 sf::Texture menuBGTexture, exitBGTexture,gameBG1Texture, leaderBGTexture, gameBGShopTexture,fishShopTexture;
-sf::Texture groundShopTexture, underGroundShopTexture;
+sf::Texture groundShopTexture, underGroundShopTexture, gameBG2Texture, ground2Texture, underGround2Texture;
 double speed = 0; // use when jumping or falling
 bool down = 0, up = 0; // state of jumping
 FILE* fp;
@@ -79,6 +79,10 @@ public:
 		{
 			ground.setTexture(groundShopTexture);
 		}
+		if (n == 3)
+		{
+			ground.setTexture(ground2Texture);
+		}
 		ground.setPosition(posx,posy);
 		ground.setTextureRect(sf::IntRect(0, 0, sizex, sizey));
 		g++;
@@ -89,6 +93,10 @@ public:
 		if (under == 2)
 		{
 			underGround.setTexture(underGroundShopTexture);
+		}
+		if (under == 3)
+		{
+			underGround.setTexture(underGround2Texture);
 		}
 		if (under > 0)
 		{
@@ -674,6 +682,206 @@ public:
 	}
 };
 boss1Bear Boss1;
+class boss2Bear
+{
+public:
+
+	clock_t start = 0, skill;
+	int sx;
+	int head; // 1 = Right , 2 = Left
+	int HP = -50;
+	int th = 0;
+	int mv = 0;
+	int animation = 0;
+	float width = 89, height = 89;
+	sf::Sprite body;
+	sf::Sprite stick;
+	void re()
+	{
+		body.setPosition(-100, -100);
+		stick.setPosition(-100, -100);
+		stick.setTextureRect({ 0,0,0,0 });
+		this->HP = -50;
+	}
+	void set(float x, float y)
+	{
+		if (HP == -50) {
+			stick.setTexture(bigstickTexture);
+			stick.setPosition(-100, -100);
+			stick.setTextureRect({ 0,0,0,0 });
+			body.setTexture(boss1leftTexture);
+			body.setTextureRect(sf::IntRect(width * ((animation / 250) % 3), 0, width, height));
+		}
+		body.setPosition(x, y - height + 0.0001);
+		this->HP = 300;
+		this->head = 2;
+	}
+	void move() // turn left or right
+	{
+		animation++;
+		dif = (endt - skill) / CLOCKS_PER_SEC;
+		if (head == 1)
+		{
+			body.setTexture(boss1rightTexture);
+			body.setTextureRect(sf::IntRect(711 - width * ((animation / 250) % 3), 0, width, height));
+			// turn right
+		}
+		else if (head == 2)
+		{
+			body.setTexture(boss1leftTexture);
+			body.setTextureRect(sf::IntRect(width * ((animation / 250) % 3), 0, width, height));
+			// turn left
+		}
+		if (dif <= 3)
+		{
+			if(head == 1) body.setTextureRect(sf::IntRect(711 - width * ((animation / 250) % 3), 89 * 3, width, height));
+			else if(head == 2) body.setTextureRect(sf::IntRect(width * ((animation / 250) % 3), 89 * 3, width, height));
+		}
+		else if (dif <= 10)
+		{
+			if (head == 1) body.setTextureRect(sf::IntRect(711 - width * ((animation / 250) % 3), 89 * 3, width, height));
+			else if (head == 2) body.setTextureRect(sf::IntRect(width * ((animation / 250) % 3), 89 * 3, width, height));
+			if (head == 1 && th == 0)
+			{
+				animation = 0;
+				stick.setTextureRect(sf::IntRect(0, 0, 60, 48));
+				stick.setPosition(body.getPosition().x + width - 6, body.getPosition().y + 14);
+				sx = stick.getPosition().x;
+				th = -1;
+				start = clock();
+			}
+			else if (head == 2 && th == 0)
+			{
+				animation = 0;
+				stick.setTextureRect(sf::IntRect(0, 0, 60, 48));
+				stick.setPosition(body.getPosition().x - 54, body.getPosition().y + 14);
+				sx = stick.getPosition().x;
+				th = -2;
+				start = clock();
+			}
+			if (th == -1)
+			{
+				if ((double)(endt - start) / CLOCKS_PER_SEC <= 0.1) body.setTextureRect(sf::IntRect(711, 89, width, height));
+				else if ((double)(endt - start) / CLOCKS_PER_SEC <= 0.2) body.setTextureRect(sf::IntRect(711 - width * 3, 89, width, height));
+				else if ((double)(endt - start) / CLOCKS_PER_SEC <= 0.3) body.setTextureRect(sf::IntRect(711 - width * 5, 89, width, height));
+				else {
+					th = 1;
+					start = clock();
+				}
+			}
+			else if (th == -2)
+			{
+				if ((double)(endt - start) / CLOCKS_PER_SEC <= 0.1) body.setTextureRect(sf::IntRect(0, 89, width, height));
+				else if ((double)(endt - start) / CLOCKS_PER_SEC <= 0.2) body.setTextureRect(sf::IntRect(width * 3, 89, width, height));
+				else if ((double)(endt - start) / CLOCKS_PER_SEC <= 0.3) body.setTextureRect(sf::IntRect(width * 5, 89, width, height));
+				else {
+					th = 2;
+					start = clock();
+				}
+			}
+		}
+		else if (dif <= 14)
+		{
+			if (head == 1) body.setTextureRect(sf::IntRect(711 - width * ((animation / 250) % 3), 89 * 3, width, height));
+			else if (head == 2) body.setTextureRect(sf::IntRect(width * ((animation / 250) % 3), 89 * 3, width, height));
+		}
+		else if(dif >16 && mv == 0)
+		{
+			if (head == 1 && body.getPosition().x - shapeSprite.getPosition().x > -470)
+			{
+				mv = 1;
+			}
+			else if (head == 2 && body.getPosition().x - shapeSprite.getPosition().x < 470)
+			{
+				mv = 2;
+			}
+			else
+			{
+				skill = clock();
+			}
+		}
+		if (mv == 1)
+		{
+			if (body.getPosition().x < 5470)
+			{
+				body.move(1, 0);
+			}
+			else
+			{
+				head = 2;
+				mv = 0;
+				skill = clock();
+			}
+		}
+		else if (mv == 2)
+		{
+			if (body.getPosition().x > 4500)
+			{
+				body.move(-1, 0);
+			}
+			else
+			{
+				head = 1;
+				mv = 0;
+				skill = clock();
+			}
+		}
+	}
+	void stickSet(int a)
+	{
+		if (a == 0)
+		{
+			stick.setTextureRect(sf::IntRect(0, 0, 60, 48));
+		}
+		else if (a == 1)
+		{
+			stick.setTextureRect(sf::IntRect(60, 0, 48, 60));
+		}
+		else if (a == 2)
+		{
+			stick.setTextureRect(sf::IntRect(108, 0, 60, 48));
+		}
+		else
+		{
+			stick.setTextureRect(sf::IntRect(168, 0, 48, 60));
+		}
+	}
+	void shot()
+	{
+		dif = (endt - start) / CLOCKS_PER_SEC;
+		int a = ((int)(dif / 0.075)) % 4;
+		if (th == 1)
+		{
+			stickSet(a);
+			stick.move(0.8 * Speed, 0);
+		}
+		else if (th == 2)
+		{
+			stickSet(3 - a);
+			stick.move(-0.8 * Speed, 0);
+		}
+		i = 0;
+		for (std::vector<GROUND>::iterator it = ground.begin(); it != ground.end(); i++, it++)
+		{
+			if (stick.getGlobalBounds().intersects(ground[i].ground.getGlobalBounds()))
+			{
+				reStick();
+			}
+		}
+		if (dif > 1.25 && th != 0)
+		{
+			reStick();
+			th = 0;
+		}
+	}
+	void reStick()
+	{
+		th = 3;
+		stick.setPosition(-1, -1);
+		stick.setTextureRect({ 0,0,0,0 });
+	}
+};
+boss2Bear Boss2;
 class item
 {
 public:
@@ -824,6 +1032,12 @@ void stage1boss();
 void shop();
 void setGroundShop();
 void buy(int);
+void stage2();
+void setGround2();
+void setMonster2();
+void setFish2();
+void setChest2();
+void stage2boss();
 
 Fish FISH[f];
 chest CHEST[ch];
@@ -836,11 +1050,8 @@ int main()
 	start();
 	MENU();
 	if (close == 1)return 0;
-	//goto s;
+	goto s;
 	stage1();
-	/*int mv = 2800;
-	view.move(mv, 0);
-	shapeSprite.move(mv+500,0);//*/
 	while (window.isOpen())
 	{
 		sf::Event event;
@@ -874,6 +1085,46 @@ int main()
 			gamePause();
 		}
 	}
+	reset();
+	s:
+	stage2();
+	/*int mv = 3800;
+	view.move(mv, 0);
+	shapeSprite.move(mv+500,0);//*/
+	while (window.isOpen())
+	{
+		sf::Event event;
+		if (window.pollEvent(event)) {}
+		gameCal();
+		stage2boss();
+		if (shapeSprite.getPosition().x > 5750)
+		{
+			break;
+		}
+		gameDraw();
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape))
+		{
+			gamePause();
+		}
+	}
+	reset();
+	shop();
+	while (window.isOpen())
+	{
+		sf::Event event;
+		if (window.pollEvent(event)) {}
+		gameCal();
+		gameDraw();
+		if (shapeSprite.getPosition().x > 1000)
+		{
+			break;
+		}
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape))
+		{
+			gamePause();
+		}
+	}
+	reset();
 	return 0;
 }
 
@@ -1066,7 +1317,6 @@ void mainCharacter()
 					shapeSprite.move(0.f, shapeSprite.getPosition().y - ground[i].ground.getPosition().y);
 				} 
 				down = 0;
-				std::cout << i;
 				break;
 			}
 		}
@@ -1173,6 +1423,26 @@ void damageCal()
 					HP--;
 					state = 1;
 					Boss1.reStick();
+				}
+			}
+			if (state == 0)
+			{
+				if (shapeSprite.getGlobalBounds().intersects(Boss2.body.getGlobalBounds()))
+				{
+					startt = clock();
+					HP--;
+					state = 1;
+					Boss2.HP -= 5;
+				}
+			}
+			if (state == 0)
+			{
+				if (shapeSprite.getGlobalBounds().intersects(Boss2.stick.getGlobalBounds()))
+				{
+					startt = clock();
+					HP--;
+					state = 1;
+					Boss2.reStick();
 				}
 			}
 		}
@@ -1304,6 +1574,24 @@ void damageCal()
 					Boss1.reStick();
 				}
 			}
+			if (state == 0)
+			{
+				if (shapeSprite.getGlobalBounds().intersects(Boss2.body.getGlobalBounds()))
+				{
+					startt = clock();
+					state = 1;
+					Boss2.HP -= 5;
+				}
+			}
+			if (state == 0)
+			{
+				if (shapeSprite.getGlobalBounds().intersects(Boss2.stick.getGlobalBounds()))
+				{
+					startt = clock();
+					state = 1;
+					Boss2.reStick();
+				}
+			}
 		}
 		else
 		{
@@ -1425,6 +1713,14 @@ void shoot()
 				{
 					bullet = 3;
 					Boss1.HP -= 10;
+				}
+			}
+			if (bullet == 2)
+			{
+				if (Bullet.getGlobalBounds().intersects(Boss2.body.getGlobalBounds()))
+				{
+					bullet = 3;
+					Boss2.HP -= 10;
 				}
 			}
 			if (bullet == 2)
@@ -1751,6 +2047,14 @@ void scratch()
 				Boss1.HP -= attackDamage;
 			}
 		}
+		if (attack == 2)
+		{
+			if (attackSprite.getGlobalBounds().intersects(Boss2.body.getGlobalBounds()))
+			{
+				attack = 3;
+				Boss2.HP -= attackDamage;
+			}
+		}
 	}
 	if (dif > 1)
 	{
@@ -1936,6 +2240,18 @@ void loadTexture()
 	if (!fishShopTexture.loadFromFile("assets/fishShop.png"))
 	{
 		std::cout << "fishShop Load failed " << std::endl;
+	}
+	if (!gameBG2Texture.loadFromFile("maps/gameBG2.png"))
+	{
+		std::cout << "gameBG2 Load failed " << std::endl;
+	}
+	if (!ground2Texture.loadFromFile("maps/block2.png"))
+	{
+		std::cout << "gameBG2 Load failed " << std::endl;
+	}
+	if (!underGround2Texture.loadFromFile("maps/under2.png"))
+	{
+		std::cout << "gameBG2 Load failed " << std::endl;
 	}
 }
 
@@ -2177,7 +2493,6 @@ void setHead()
 
 void stage1()
 {
-	stage = 1;
 	startx = 0;
 	endx = 5000;
 	shapeSprite.setPosition(spawn);
@@ -2226,7 +2541,12 @@ void reset()
 	{
 		FISH[i].re();
 	}
+	for (int i = 0; i < ch; i++)
+	{
+		CHEST[i].re();
+	}
 	Boss1.re();
+	Boss2.re();
 	g = 0;
 	while (!ground.empty())
 	{
@@ -2247,6 +2567,7 @@ void reset()
 	moveView = 0;
 	stage = 1;
 	down = 1;
+	Speed = 1.35;
 	for (int i = 0; i < 4; i++)
 	{
 		Pillar[i].setSize(sf::Vector2f(0, 0));
@@ -2564,6 +2885,24 @@ void gameDraw()
 	{
 		if (CHEST[i].state > 0)window.draw(CHEST[i].body);
 	}
+	if (stage == 2)
+	{
+		for (i = 0; i < 4; i++)
+		{
+			window.draw(SHOP[i]);
+		}
+		if (attackDamage == 5) weaponShop.setTexture(weapon2Texture);
+		else if (attackDamage == 10) weaponShop.setTexture(weapon3Texture);
+		else weaponShop.setTextureRect(sf::IntRect(0, 0, 0, 0));
+		window.draw(heartShop);
+		window.draw(rngboxShop);
+		window.draw(weaponShop);
+		window.draw(fishboneShop);
+		window.draw(fishShop1);
+		window.draw(fishShop2);
+		window.draw(fishShop3);
+		window.draw(fishShop4);
+	}
 	if (state == 0 || state == 2)window.draw(shapeSprite);
 	window.draw(inventory1);
 	window.draw(inventory2);
@@ -2577,24 +2916,6 @@ void gameDraw()
 	if (cItem == 2) { window.draw(item2); }
 	else if (cItem == 3) { window.draw(item3); }
 	window.draw(clawForShow);
-	if (stage  == 2)
-	{
-		for (i = 0; i < 4; i++)
-		{
-			window.draw(SHOP[i]);
-		}
-		if (attackDamage == 5) weaponShop.setTexture(weapon2Texture);
-		else if(attackDamage == 10) weaponShop.setTexture(weapon3Texture);
-		else weaponShop.setTextureRect(sf::IntRect(0, 0, 0, 0));
-		window.draw(heartShop);
-		window.draw(rngboxShop);
-		window.draw(weaponShop);
-		window.draw(fishboneShop);
-		window.draw(fishShop1);
-		window.draw(fishShop2);
-		window.draw(fishShop3);
-		window.draw(fishShop4);
-	}
 	for (int i = 0; i < nb; i++)
 	{
 		if (NBear[i].HP > 0)
@@ -2617,8 +2938,16 @@ void gameDraw()
 			window.draw(TBear[i].body);
 		}
 	}
-	window.draw(Boss1.body);
-	window.draw(Boss1.stick);
+	if (Boss1.HP > 0)
+	{
+		window.draw(Boss1.body);
+		window.draw(Boss1.stick);
+	}
+	if (Boss2.HP > 0)
+	{
+		window.draw(Boss2.body);
+		window.draw(Boss2.stick);
+	}
 	if (bullet < 3 && bullet > 0) window.draw(Bullet);
 	if (attack < 4 && attack > 0)window.draw(attackSprite);
 	for (int i = 0; i < it; i++)
@@ -2683,9 +3012,10 @@ void gameCal()
 			Boss1.move();
 			Boss1.shot();
 		}
-		else if (Boss1.HP <= 0 && Boss1.HP > -50)
+		if (Boss2.HP > 0)
 		{
-			Boss1.re();
+			Boss2.move();
+			Boss2.shot();
 		}
 	}
 	if (bullet > 0)
@@ -2769,17 +3099,22 @@ void gameover()
 
 void stage1boss()
 {
-	while (view.getCenter().x > 3900 && view.getCenter().x < 4300 && Boss1.HP > 0)
+	if (view.getCenter().x > 3900 && view.getCenter().x < 4300 && Boss1.HP > 0)
 	{
+		while (view.getCenter().x > 3900 && view.getCenter().x < 4300 && Boss1.HP > 0)
+		{
+			view.move(0.5, 0);
+			window.setView(view);
+			setHead();
+			gameDraw();
+		}
+		for (int i = 0; i < nb; i++) NBear[i].re();
+		for (int i = 0; i < fb; i++)FISHBONE[i].re();
+		for (int i = 0; i < tb; i++) TBear[i].re();
 		startx = 3760;
 		endx = 4840;
 		moveView = 1;
-		view.move(0.5, 0);
-		window.setView(view);
-		setHead();
-		gameDraw();
 		Boss1.skill = clock();
-		for (int i = 0; i < nb; i++) NBear[i].re();
 	}
 	if (Boss1.HP <= 0 && Boss1.HP > -50)
 	{
@@ -2999,19 +3334,6 @@ void buy(int a)
 		{
 			if (CHEST[i].state > 0)window.draw(CHEST[i].body);
 		}
-		if (state == 0 || state == 2)window.draw(shapeSprite);
-		window.draw(inventory1);
-		window.draw(inventory2);
-		window.draw(textScore);
-		window.draw(textFish);
-		window.draw(textFishbone);
-		window.draw(textHP);
-		window.draw(heart);
-		window.draw(fishForShow);
-		window.draw(fishboneForShow);
-		if (cItem == 2) { window.draw(item2); }
-		else if (cItem == 3) { window.draw(item3); }
-		window.draw(clawForShow);
 		if (stage == 2)
 		{
 			for (i = 0; i < 4; i++)
@@ -3030,6 +3352,19 @@ void buy(int a)
 			window.draw(fishShop3);
 			window.draw(fishShop4);
 		}
+		if (state == 0 || state == 2)window.draw(shapeSprite);
+		window.draw(inventory1);
+		window.draw(inventory2);
+		window.draw(textScore);
+		window.draw(textFish);
+		window.draw(textFishbone);
+		window.draw(textHP);
+		window.draw(heart);
+		window.draw(fishForShow);
+		window.draw(fishboneForShow);
+		if (cItem == 2) { window.draw(item2); }
+		else if (cItem == 3) { window.draw(item3); }
+		window.draw(clawForShow);
 		for (int i = 0; i < nb; i++)
 		{
 			if (NBear[i].HP > 0)
@@ -3090,4 +3425,157 @@ void buy(int a)
 		if (closeEx == 1)break;
 	}
 	end:{}
+}
+
+void stage2()
+{
+	startx = 0;
+	endx = 5800;
+	Speed = 1.5;
+	shapeSprite.setPosition(spawn);
+	gameBG.setTexture(gameBG2Texture);
+	gameBG.setTextureRect(sf::IntRect(0, 0, 6200, 720));
+	setGround2();
+	setMonster2();
+	setFish2();
+	setChest2();
+}
+
+void setGround2()
+{
+	//  ground.push_back(GROUND(sizex,	sizey,	posx,	posy,	g,	underground)); 
+	ground.push_back(GROUND(	480.0,	32.0,	0.0,	600.0,	3,	3)); // 0
+	ground.push_back(GROUND(	320.0,	32.0,	480.0,	536.0,	3,	3)); // 1
+	ground.push_back(GROUND(	320.0,	32.0,	800.0,	472.0,	3,	3)); // 2
+	ground.push_back(GROUND(	320.0,	32.0,	1120.0,	408.0,	3,	3)); // 3
+	ground.push_back(GROUND(	320.0,	32.0,	1440.0,	344.0,	3,	3)); // 4
+	ground.push_back(GROUND(	320.0,	32.0,	1760.0, 280.0,	3,	3)); // 5
+	ground.push_back(GROUND(	32.0,	640.0,	2048.0,	280.0,	3,	3)); // 6 I
+	ground.push_back(GROUND(	240.0,	32.0,	2256.0, 280.0,	3,	0)); // 7
+	ground.push_back(GROUND(	240.0,	32.0,	2672.0, 280.0,	3,	0)); // 8
+	ground.push_back(GROUND(	240.0,	32.0,	3088.0, 280.0,	3,	0)); // 9
+	ground.push_back(GROUND(	240.0,	32.0,	3504.0, 280.0,	3,	0)); // 10
+	ground.push_back(GROUND(	1760.0,	32.0,	2080.0, 568.0,	3,	3)); // 11
+	ground.push_back(GROUND(	160.0,	32.0,	3840.0, 536.0,	3,	3)); // 12
+	ground.push_back(GROUND(	480.0,	32.0,	4000.0, 568.0,	3,	3)); // 13
+	ground.push_back(GROUND(	1100.0,	32.0,	4480.0, 504.0,	3,	3)); // 14
+	ground.push_back(GROUND(	360.0,	32.0,	5580.0, 536.0,	3,	3)); // 15
+}
+
+void setMonster2()
+{
+	NBear[0].set(560, 536);  // 1
+	NBear[1].set(720, 536);  // 1
+	NBear[2].set(870, 472);  // 2
+	NBear[3].set(930, 472);  // 2
+	NBear[4].set(1050, 472); // 2 
+	NBear[5].set(1200, 408); // 3
+	NBear[6].set(1360, 408); // 3
+	NBear[7].set(1510, 344); // 4
+	NBear[8].set(1570, 344); // 4
+	NBear[9].set(1690, 344);// 4
+	NBear[10].set(2316, 280);// 7
+	NBear[11].set(2436, 280);// 7
+	NBear[12].set(2732, 280);// 8
+	NBear[13].set(2852, 280);// 8
+	NBear[14].set(3148, 280);// 9
+	NBear[15].set(3268, 280);// 9 
+	NBear[16].set(3564, 280);// 10
+	NBear[17].set(3684, 280);// 10
+	NBear[18].set(2316, 568);// 11
+	NBear[19].set(2732, 568);// 11
+	NBear[20].set(3148, 568);// 11
+	NBear[21].set(3564, 568);// 11
+	NBear[22].set(4120, 568);// 13
+	NBear[23].set(4360, 568);// 13
+
+	TBear[0].set(625, 536);  // 1
+	TBear[1].set(1265, 408); // 3
+	TBear[2].set(1905, 280); // 5
+	TBear[3].set(4235, 568); // 13
+
+	Boss2.set(5470, 504);
+}
+
+void setFish2()
+{
+	FISH[0].set(560, 380); // 1
+	FISH[1].set(620, 330); // 1
+	FISH[2].set(680, 380); // 1
+	FISH[3].set(880, 316); // 2
+	FISH[4].set(940, 256); // 2
+	FISH[5].set(1010, 316); // 2
+	FISH[6].set(1200, 252); // 3
+	FISH[7].set(1260, 192); // 3
+	FISH[8].set(1320, 252); // 3
+	FISH[9].set(1520, 188); // 4
+	FISH[10].set(1580, 128); // 4
+	FISH[11].set(1640, 188); // 4
+	FISH[12].set(1840, 134); // 5
+	FISH[13].set(1900, 74); // 5
+	FISH[14].set(1960, 134); // 5
+	FISH[15].set(2301, 166); // 7
+	FISH[16].set(2401, 166); // 7
+	FISH[17].set(2717, 166); // 8
+	FISH[18].set(2817, 166); // 8
+	FISH[19].set(3133, 166); // 9
+	FISH[20].set(3233, 166); // 9
+	FISH[21].set(3549, 166); // 10
+	FISH[22].set(3649, 166); // 10
+	FISH[23].set(2301, 420); // 11
+	FISH[24].set(2401, 420); // 11
+	FISH[25].set(2717, 420); // 11
+	FISH[26].set(2817, 420); // 11
+	FISH[27].set(3133, 420); // 11
+	FISH[28].set(3233, 420); // 11
+	FISH[29].set(3549, 420); // 11
+	FISH[30].set(3649, 420); // 11
+	FISH[31].set(3895, 388); // 12
+	FISH[32].set(4030, 420); // 13
+	FISH[33].set(4220, 420); // 13
+	FISH[34].set(4410, 420); // 13
+}
+
+void setChest2()
+{
+	CHEST[0].set(360, 600);  // 0
+	CHEST[1].set(3675, 280); // 10
+}
+
+void stage2boss()
+{
+	if (view.getCenter().x > 4630 && view.getCenter().x < 5030 && Boss2.HP > 0)
+	{
+		while (view.getCenter().x > 4630 && view.getCenter().x < 5030 && Boss2.HP > 0)
+		{
+			view.move(0.5, 0);
+			window.setView(view);
+			setHead();
+			gameDraw();
+		}
+		for (int i = 0; i < nb; i++) NBear[i].re();
+		for (int i = 0; i < fb; i++) FISHBONE[i].re();
+		for (int i = 0; i < tb; i++) TBear[i].re();
+		startx = 4490;
+		endx = 5565;
+		moveView = 1;
+		Speed = 1.35;
+		Boss2.skill = clock();
+	}
+	if (Boss2.HP <= 0 && Boss2.HP > -50)
+	{
+		Boss2.re();
+		fish += 40;
+		score += 500;
+		endx = 5800;
+		moveView = 0;
+		while ((view.getCenter().x - shapeSprite.getPosition().x >= -16) && view.getCenter().x - 540 > startx)
+		{
+			view.move(-0.18 * Speed, 0);
+		}
+		while ((view.getCenter().x - shapeSprite.getPosition().x <= 16) && view.getCenter().x + 540 < endx)
+		{
+			view.move(.18 * Speed, 0);
+		}
+	}
 }

@@ -296,6 +296,7 @@ public:
 		body.setTexture(throwBearTexture);
 		}
 		stick.setTextureRect(sf::IntRect(0, 0, 0, 0));
+		body.setTextureRect(sf::IntRect(0, 0, 0, 0));
 		body.setPosition(x, y - height + 0.0001);
 		HP = 20;
 	}
@@ -961,12 +962,12 @@ public:
 		}
 		if (STATE == 1)
 		{
-			if (dif <= 3)
+			if (dif <= 2)
 			{
 				if (head == 1) body.setTextureRect(sf::IntRect(1422 - width * ((animation / 250) % 3), height * 3 + 2, width, height));
 				else if (head == 2) body.setTextureRect(sf::IntRect(width * ((animation / 250) % 3), height * 3 + 2, width, height));
 			}
-			else if (dif <= 5)
+			else if (dif <= 4)
 			{
 				body.setTextureRect(sf::IntRect(1422 - width * 3, height * 3 + 3, width, height));
 				if (roar == 0)
@@ -980,7 +981,7 @@ public:
 					roar = 0;
 				}
 			}
-			else if (dif <= 7)
+			else if (dif <= 5)
 			{
 				if (roar == 1)
 				{
@@ -992,7 +993,7 @@ public:
 			}
 			else if (ran == 0)
 			{
-				if (dif <= 14)
+				if (dif <= 12)
 				{
 					if (head == 1) body.setTextureRect(sf::IntRect(1422 - width * ((animation / 250) % 3), height * 3 + 2, width, height));
 					else if (head == 2) body.setTextureRect(sf::IntRect(width * ((animation / 250) % 3), height * 3 + 2, width, height));
@@ -1035,21 +1036,25 @@ public:
 						}
 					}
 				}
-				else if (dif <= 18)
+				else if (dif <= 17)
 				{
 					if (head == 1) body.setTextureRect(sf::IntRect(1422 - width * ((animation / 250) % 3), height * 3 + 2, width, height));
 					else if (head == 2) body.setTextureRect(sf::IntRect(width * ((animation / 250) % 3), height * 3 + 2, width, height));
 				}
-				else if (dif > 20)
+				else if (dif > 19)
 				{
 					skill = clock();
 					ran = rand() % 3;
-					if (HP <= 300) STATE = 2;
+					if (HP <= 300)
+					{
+						ran = 2;
+						STATE = 2;
+					}
 				}
 			}
 			else if (ran == 1)
 			{
-				if (dif <= 8)
+				if (dif <= 6)
 				{
 					if (head == 1) body.setTextureRect(sf::IntRect(1422 - width * ((animation / 250) % 3), height * 3 + 2, width, height));
 					else if (head == 2) body.setTextureRect(sf::IntRect(width * ((animation / 250) % 3), height * 3 + 2, width, height));
@@ -1057,7 +1062,7 @@ public:
 					stone2.setPosition(900, -64);
 					stone3.setPosition(1200, -64);
 				}
-				else if (dif <= 13)
+				else if (dif <= 8)
 				{
 					if (head == 1) body.setTextureRect(sf::IntRect(1422 - width * ((animation / 250) % 3), height * 3 + 2, width, height));
 					else if (head == 2) body.setTextureRect(sf::IntRect(width * ((animation / 250) % 3), height * 3 + 2, width, height));
@@ -1065,11 +1070,15 @@ public:
 					stone2.move(0, 0.9);
 					stone3.move(0, 0.9);
 				}
-				else if (dif > 18)
+				else if (dif > 12)
 				{
 					skill = clock();
 					ran = rand() % 3;
-					if (HP <= 300) STATE = 2;
+					if (HP <= 300)
+					{
+						ran = 2;
+						STATE = 2;
+					}
 				}
 			}
 			else if (ran == 2)
@@ -1104,18 +1113,195 @@ public:
 						}
 					}
 				}
-				if (dif > 18)
+				if (dif > 8)
 				{
 					spw = 0;
 					skill = clock();
 					ran = rand() % 3;
-					if (HP <= 300) STATE = 2;
+					if (HP <= 300)
+					{
+						ran = 2;
+						STATE = 2;
+					}
+				}
+			}
+		}
+		else if (STATE == 2)
+		{
+			if (dif <= 2)
+			{
+				if (head == 1) body.setTextureRect(sf::IntRect(1422 - width * ((animation / 250) % 3), height * 3 + 2, width, height));
+				else if (head == 2) body.setTextureRect(sf::IntRect(width * ((animation / 250) % 3), height * 3 + 2, width, height));
+			}
+			else if (dif <= 4)
+			{
+				body.setTextureRect(sf::IntRect(1422 - width * 3, height * 3 + 3, width, height));
+				if (roar == 0)
+				{
+					view.move(20, 0);
+					roar = 1;
+				}
+				else
+				{
+					view.move(-20, 0);
+					roar = 0;
+				}
+			}
+			else if (dif <= 5)
+			{
+				if (roar == 1)
+				{
+					view.move(-20, 0);
+					roar = 0;
+				}
+				if (head == 1) body.setTextureRect(sf::IntRect(1422 - width * ((animation / 250) % 3), height * 3 + 2, width, height));
+				else if (head == 2) body.setTextureRect(sf::IntRect(width * ((animation / 250) % 3), height * 3 + 2, width, height));
+			}
+			else if (ran == 0)
+			{
+				if (dif <= 12)
+				{
+					if (head == 1) body.setTextureRect(sf::IntRect(1422 - width * ((animation / 250) % 3), height * 3 + 2, width, height));
+					else if (head == 2) body.setTextureRect(sf::IntRect(width * ((animation / 250) % 3), height * 3 + 2, width, height));
+					if (head == 1 && th == 0)
+					{
+						animation = 0;
+						stick.setTextureRect(sf::IntRect(0, 0, 60, 48));
+						stick.setPosition(body.getPosition().x + width - 6, body.getPosition().y + 90);
+						sx = stick.getPosition().x;
+						th = -1;
+						start = clock();
+					}
+					else if (head == 2 && th == 0)
+					{
+						animation = 0;
+						stick.setTextureRect(sf::IntRect(0, 0, 60, 48));
+						stick.setPosition(body.getPosition().x - 54, body.getPosition().y + 90);
+						sx = stick.getPosition().x;
+						th = -2;
+						start = clock();
+					}
+					if (th == -1)
+					{
+						if ((double)(endt - start) / CLOCKS_PER_SEC <= 0.1) body.setTextureRect(sf::IntRect(1422, height + 2, width, height));
+						else if ((double)(endt - start) / CLOCKS_PER_SEC <= 0.2) body.setTextureRect(sf::IntRect(1422 - width * 3, height + 2, width, height));
+						else if ((double)(endt - start) / CLOCKS_PER_SEC <= 0.3) body.setTextureRect(sf::IntRect(1422 - width * 5, height + 2, width, height));
+						else {
+							th = 1;
+							start = clock();
+						}
+					}
+					else if (th == -2)
+					{
+						if ((double)(endt - start) / CLOCKS_PER_SEC <= 0.1) body.setTextureRect(sf::IntRect(0, height + 2, width, height));
+						else if ((double)(endt - start) / CLOCKS_PER_SEC <= 0.2) body.setTextureRect(sf::IntRect(width * 3, height + 2, width, height));
+						else if ((double)(endt - start) / CLOCKS_PER_SEC <= 0.3) body.setTextureRect(sf::IntRect(width * 5, height + 2, width, height));
+						else {
+							th = 2;
+							start = clock();
+						}
+					}
+				}
+				else if (dif <= 16)
+				{
+					if (head == 1) body.setTextureRect(sf::IntRect(1422 - width * ((animation / 250) % 3), height * 3 + 2, width, height));
+					else if (head == 2) body.setTextureRect(sf::IntRect(width * ((animation / 250) % 3), height * 3 + 2, width, height));
+				}
+				else if (dif > 18)
+				{
+					skill = clock();
+					STATE = 3;
+				}
+			}
+			else if (ran == 1)
+			{
+				if (dif <= 6)
+				{
+					if (head == 1) body.setTextureRect(sf::IntRect(1422 - width * ((animation / 250) % 3), height * 3 + 2, width, height));
+					else if (head == 2) body.setTextureRect(sf::IntRect(width * ((animation / 250) % 3), height * 3 + 2, width, height));
+					stone1.setPosition(600, -64);
+					stone2.setPosition(900, -64);
+					stone3.setPosition(1200, -64);
+				}
+				else if (dif <= 8)
+				{
+					if (head == 1) body.setTextureRect(sf::IntRect(1422 - width * ((animation / 250) % 3), height * 3 + 2, width, height));
+					else if (head == 2) body.setTextureRect(sf::IntRect(width * ((animation / 250) % 3), height * 3 + 2, width, height));
+					stone1.move(0, 0.9);
+					stone2.move(0, 0.9);
+					stone3.move(0, 0.9);
+				}
+				else if (dif > 10)
+				{
+					skill = clock();
+					ran = 0;
+				}
+			}
+			else if (ran == 2)
+			{
+				if (spw < 3)
+				{
+					for (int i = 0; i < nb; i++)
+					{
+						if (NBear[i].HP == -50)
+						{
+							NBear[i].set(1500, 568);
+							spw++;
+							break;
+						}
+					}
+					for (int i = 0; i < nb; i++)
+					{
+						if (NBear[i].HP == -50)
+						{
+							NBear[i].set(550, 568);
+							spw++;
+							break;
+
+						}
+						for (int i = 0; i < tb; i++)
+						{
+							if (TBear[i].HP == -50)
+							{
+								TBear[i].set(500, 568);
+								spw++;
+								break;
+							}
+						}
+					}
+				}
+				if (dif > 6)
+				{
+					spw = 0;
+					skill = clock();
+					ran = 1;
 				}
 			}
 		}
 		else
 		{
-			
+			if (shapeSprite.getPosition().x > body.getPosition().x + 10)
+			{
+				head = 1;
+				body.setTexture(boss3rightTexture);
+				body.setTextureRect(sf::IntRect(1422 - width * ((animation / 250) % 3), 2, width, height));
+				// turn right
+			}
+			else
+			{
+				head = 2;
+				body.setTexture(boss3leftTexture);
+				body.setTextureRect(sf::IntRect(width * ((animation / 250) % 3), 2, width, height));
+				// turn left
+			}
+			if (shapeSprite.getPosition().x > body.getPosition().x)
+			{
+				body.move(0.075, 0);
+			}
+			else
+			{
+				body.move(-0.075, 0);
+			}
 		}
 	}
 	void stickSet(int a)
@@ -1346,7 +1532,7 @@ int main()
 	start();
 	MENU();
 	if (close == 1)return 0;
-	goto s;
+	//goto s;
 	stage1();
 	while (window.isOpen())
 	{
@@ -1420,7 +1606,6 @@ int main()
 		}
 	}
 	reset();
-	s:
 	stage3();
 	while (window.isOpen())
 	{
@@ -4104,8 +4289,7 @@ void stage3boss()
 	if (Boss3.HP <= 0 && Boss3.HP > -50)
 	{
 		Boss3.re();
-		fish += 40;
-		score += 500;
+		score += 1000;
 		endx = 1810;
 		moveView = 0;
 		while ((view.getCenter().x - shapeSprite.getPosition().x >= -16) && view.getCenter().x - 540 > startx)

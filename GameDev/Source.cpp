@@ -57,7 +57,8 @@ sf::Texture playerTextureRight, playerTextureLeft, fishboneTexture, attackTextur
 sf::Texture heartTexture,fishForShowTexture, fishboneForShowTexture, normalBearTexture, throwBearTexture, fishboneDropTexture, inventoryTexture, rngboxTexture, weapon1Texture, weapon2Texture, weapon3Texture;
 sf::Texture ground1Texture, underGround1Texture, bigstickTexture, boss1rightTexture, boss1leftTexture;
 sf::Texture menuBGTexture, exitBGTexture,gameBG1Texture, leaderBGTexture, gameBGShopTexture,fishShopTexture;
-sf::Texture groundShopTexture, underGroundShopTexture, gameBG2Texture, ground2Texture, underGround2Texture;
+sf::Texture groundShopTexture, underGroundShopTexture, gameBG2Texture, ground2Texture, underGround2Texture, gameBG3Texture, ground3Texture, underGround3Texture;
+sf::Texture boss3rightTexture, boss3leftTexture,stoneTexture;
 double speed = 0; // use when jumping or falling
 bool down = 0, up = 0; // state of jumping
 FILE* fp;
@@ -83,6 +84,10 @@ public:
 		{
 			ground.setTexture(ground2Texture);
 		}
+		if (n == 4)
+		{
+			ground.setTexture(ground3Texture);
+		}
 		ground.setPosition(posx,posy);
 		ground.setTextureRect(sf::IntRect(0, 0, sizex, sizey));
 		g++;
@@ -97,6 +102,10 @@ public:
 		if (under == 3)
 		{
 			underGround.setTexture(underGround2Texture);
+		}
+		if (under == 4)
+		{
+			underGround.setTexture(underGround3Texture);
 		}
 		if (under > 0)
 		{
@@ -180,6 +189,7 @@ public:
 	{
 		head = (rand() % 2) + 1;
 		body.setTexture(normalBearTexture);
+		body.setTextureRect(sf::IntRect(0, 0, 0, 0));
 		body.setPosition(x, y - height +0.0001);
 		HP = 10;
 		animation = 0;
@@ -285,6 +295,7 @@ public:
 		if (HP == -50) { stick.setTexture(stickTexture);
 		body.setTexture(throwBearTexture);
 		}
+		stick.setTextureRect(sf::IntRect(0, 0, 0, 0));
 		body.setPosition(x, y - height + 0.0001);
 		HP = 20;
 	}
@@ -882,6 +893,286 @@ public:
 	}
 };
 boss2Bear Boss2;
+class boss3Bear
+{
+public:
+
+	clock_t start = 0, skill;
+	int sx;
+	int head; // 1 = Right , 2 = Left
+	int HP = -50;
+	int th = 0;
+	int mv = 0;
+	int animation = 0;
+	int ran;
+	int STATE;
+	int roar;
+	int spw;
+	float width = 178, height = 178;
+	sf::Sprite body;
+	sf::Sprite stick;
+	sf::Sprite stone1;
+	sf::Sprite stone2;
+	sf::Sprite stone3;
+	void re()
+	{
+		body.setPosition(-100, -100);
+		stick.setPosition(-100, -100);
+		stick.setTextureRect({ 0,0,0,0 });
+		this->HP = -50;
+	}
+	void set(float x, float y)
+	{
+		if (HP == -50) {
+			stick.setTexture(bigstickTexture);
+			stick.setPosition(-100, -100);
+			stick.setTextureRect({ 0,0,0,0 });
+			body.setTexture(boss3leftTexture);
+			body.setTextureRect(sf::IntRect(width * ((animation / 250) % 3), 0, width, height));
+			stone1.setTexture(stoneTexture);
+			stone2.setTexture(stoneTexture);
+			stone3.setTexture(stoneTexture);
+		}
+		body.setPosition(x, y - height + 1.0001);
+		this->HP = 600;
+		this->head = 2;
+		ran = rand() % 3;
+		roar = 0;
+		STATE = 1;
+		stone1.setPosition(-100,-100);
+		stone2.setPosition(-100,-100);
+		stone3.setPosition(-100,-100);
+	}
+	void move() // turn left or right
+	{
+		animation++;
+		dif = (endt - skill) / CLOCKS_PER_SEC;
+		if (head == 1)
+		{
+			body.setTexture(boss3rightTexture);
+			body.setTextureRect(sf::IntRect(1422 - width * ((animation / 250) % 3), 2, width, height));
+			// turn right
+		}
+		else if (head == 2)
+		{
+			body.setTexture(boss3leftTexture);
+			body.setTextureRect(sf::IntRect(width * ((animation / 250) % 3), 2, width, height));
+			// turn left
+		}
+		if (STATE == 1)
+		{
+			if (dif <= 3)
+			{
+				if (head == 1) body.setTextureRect(sf::IntRect(1422 - width * ((animation / 250) % 3), height * 3 + 2, width, height));
+				else if (head == 2) body.setTextureRect(sf::IntRect(width * ((animation / 250) % 3), height * 3 + 2, width, height));
+			}
+			else if (dif <= 5)
+			{
+				body.setTextureRect(sf::IntRect(1422 - width * 3, height * 3 + 3, width, height));
+				if (roar == 0)
+				{
+					view.move(20, 0);
+					roar = 1;
+				}
+				else
+				{
+					view.move(-20, 0);
+					roar = 0;
+				}
+			}
+			else if (dif <= 7)
+			{
+				if (roar == 1)
+				{
+					view.move(-20, 0);
+					roar = 0;
+				}
+				if (head == 1) body.setTextureRect(sf::IntRect(1422 - width * ((animation / 250) % 3), height * 3 + 2, width, height));
+				else if (head == 2) body.setTextureRect(sf::IntRect(width * ((animation / 250) % 3), height * 3 + 2, width, height));
+			}
+			else if (ran == 0)
+			{
+				if (dif <= 14)
+				{
+					if (head == 1) body.setTextureRect(sf::IntRect(1422 - width * ((animation / 250) % 3), height * 3 + 2, width, height));
+					else if (head == 2) body.setTextureRect(sf::IntRect(width * ((animation / 250) % 3), height * 3 + 2, width, height));
+					if (head == 1 && th == 0)
+					{
+						animation = 0;
+						stick.setTextureRect(sf::IntRect(0, 0, 60, 48));
+						stick.setPosition(body.getPosition().x + width - 6, body.getPosition().y + 90);
+						sx = stick.getPosition().x;
+						th = -1;
+						start = clock();
+					}
+					else if (head == 2 && th == 0)
+					{
+						animation = 0;
+						stick.setTextureRect(sf::IntRect(0, 0, 60, 48));
+						stick.setPosition(body.getPosition().x - 54, body.getPosition().y + 90);
+						sx = stick.getPosition().x;
+						th = -2;
+						start = clock();
+					}
+					if (th == -1)
+					{
+						if ((double)(endt - start) / CLOCKS_PER_SEC <= 0.1) body.setTextureRect(sf::IntRect(1422, height + 2, width, height));
+						else if ((double)(endt - start) / CLOCKS_PER_SEC <= 0.2) body.setTextureRect(sf::IntRect(1422 - width * 3, height + 2, width, height));
+						else if ((double)(endt - start) / CLOCKS_PER_SEC <= 0.3) body.setTextureRect(sf::IntRect(1422 - width * 5, height + 2, width, height));
+						else {
+							th = 1;
+							start = clock();
+						}
+					}
+					else if (th == -2)
+					{
+						if ((double)(endt - start) / CLOCKS_PER_SEC <= 0.1) body.setTextureRect(sf::IntRect(0, height + 2, width, height));
+						else if ((double)(endt - start) / CLOCKS_PER_SEC <= 0.2) body.setTextureRect(sf::IntRect(width * 3, height + 2, width, height));
+						else if ((double)(endt - start) / CLOCKS_PER_SEC <= 0.3) body.setTextureRect(sf::IntRect(width * 5, height + 2, width, height));
+						else {
+							th = 2;
+							start = clock();
+						}
+					}
+				}
+				else if (dif <= 18)
+				{
+					if (head == 1) body.setTextureRect(sf::IntRect(1422 - width * ((animation / 250) % 3), height * 3 + 2, width, height));
+					else if (head == 2) body.setTextureRect(sf::IntRect(width * ((animation / 250) % 3), height * 3 + 2, width, height));
+				}
+				else if (dif > 20)
+				{
+					skill = clock();
+					ran = rand() % 3;
+					if (HP <= 300) STATE = 2;
+				}
+			}
+			else if (ran == 1)
+			{
+				if (dif <= 8)
+				{
+					if (head == 1) body.setTextureRect(sf::IntRect(1422 - width * ((animation / 250) % 3), height * 3 + 2, width, height));
+					else if (head == 2) body.setTextureRect(sf::IntRect(width * ((animation / 250) % 3), height * 3 + 2, width, height));
+					stone1.setPosition(600, -64);
+					stone2.setPosition(900, -64);
+					stone3.setPosition(1200, -64);
+				}
+				else if (dif <= 13)
+				{
+					if (head == 1) body.setTextureRect(sf::IntRect(1422 - width * ((animation / 250) % 3), height * 3 + 2, width, height));
+					else if (head == 2) body.setTextureRect(sf::IntRect(width * ((animation / 250) % 3), height * 3 + 2, width, height));
+					stone1.move(0, 0.9);
+					stone2.move(0, 0.9);
+					stone3.move(0, 0.9);
+				}
+				else if (dif > 18)
+				{
+					skill = clock();
+					ran = rand() % 3;
+					if (HP <= 300) STATE = 2;
+				}
+			}
+			else if (ran == 2)
+			{
+				if (spw < 3)
+				{
+					for (int i = 0; i < nb; i++)
+					{
+						if (NBear[i].HP == -50)
+						{
+							NBear[i].set(1500, 568);
+							spw++;
+							break;
+						}
+					}
+					for (int i = 0; i < nb; i++)
+					{
+						if (NBear[i].HP == -50)
+						{
+							NBear[i].set(550, 568);
+							spw++;
+							break;
+						}
+					}
+					for (int i = 0; i < tb; i++)
+					{
+						if (TBear[i].HP == -50)
+						{
+							TBear[i].set(500, 568);
+							spw++;
+							break;
+						}
+					}
+				}
+				if (dif > 18)
+				{
+					spw = 0;
+					skill = clock();
+					ran = rand() % 3;
+					if (HP <= 300) STATE = 2;
+				}
+			}
+		}
+		else
+		{
+			
+		}
+	}
+	void stickSet(int a)
+	{
+		if (a == 0)
+		{
+			stick.setTextureRect(sf::IntRect(0, 0, 60, 48));
+		}
+		else if (a == 1)
+		{
+			stick.setTextureRect(sf::IntRect(60, 0, 48, 60));
+		}
+		else if (a == 2)
+		{
+			stick.setTextureRect(sf::IntRect(108, 0, 60, 48));
+		}
+		else
+		{
+			stick.setTextureRect(sf::IntRect(168, 0, 48, 60));
+		}
+	}
+	void shot()
+	{
+		dif = (endt - start) / CLOCKS_PER_SEC;
+		int a = ((int)(dif / 0.075)) % 4;
+		if (th == 1)
+		{
+			stickSet(a);
+			stick.move(0.8 * Speed, 0);
+		}
+		else if (th == 2)
+		{
+			stickSet(3 - a);
+			stick.move(-0.8 * Speed, 0);
+		}
+		i = 0;
+		for (std::vector<GROUND>::iterator it = ground.begin(); it != ground.end(); i++, it++)
+		{
+			if (stick.getGlobalBounds().intersects(ground[i].ground.getGlobalBounds()))
+			{
+				reStick();
+			}
+		}
+		if (dif > 1.25 && th != 0)
+		{
+			reStick();
+			th = 0;
+		}
+	}
+	void reStick()
+	{
+		th = 3;
+		stick.setPosition(-1, -1);
+		stick.setTextureRect({ 0,0,0,0 });
+	}
+};
+boss3Bear Boss3;
 class item
 {
 public:
@@ -1038,6 +1329,11 @@ void setMonster2();
 void setFish2();
 void setChest2();
 void stage2boss();
+void stage3();
+void setGround3();
+void setMonster3();
+void setChest3();
+void stage3boss();
 
 Fish FISH[f];
 chest CHEST[ch];
@@ -1086,7 +1382,6 @@ int main()
 		}
 	}
 	reset();
-	s:
 	stage2();
 	/*int mv = 3800;
 	view.move(mv, 0);
@@ -1125,6 +1420,24 @@ int main()
 		}
 	}
 	reset();
+	s:
+	stage3();
+	while (window.isOpen())
+	{
+		sf::Event event;
+		if (window.pollEvent(event)) {}
+		gameCal();
+		stage3boss();
+		if (shapeSprite.getPosition().x > 1740)
+		{
+			break;
+		}
+		gameDraw();
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape))
+		{
+			gamePause();
+		}
+	}
 	return 0;
 }
 
@@ -1445,6 +1758,53 @@ void damageCal()
 					Boss2.reStick();
 				}
 			}
+			if (state == 0)
+			{
+				if (shapeSprite.getGlobalBounds().intersects(Boss3.body.getGlobalBounds()))
+				{
+					startt = clock();
+					HP--;
+					state = 1;
+					Boss3.HP -= 5;
+				}
+			}
+			if (state == 0)
+			{
+				if (shapeSprite.getGlobalBounds().intersects(Boss3.stick.getGlobalBounds()))
+				{
+					startt = clock();
+					HP--;
+					state = 1;
+					Boss3.reStick();
+				}
+			}
+			if (state == 0)
+			{
+				if (shapeSprite.getGlobalBounds().intersects(Boss3.stone1.getGlobalBounds()))
+				{
+					startt = clock();
+					HP--;
+					state = 1;
+				}
+			}
+			if (state == 0)
+			{
+				if (shapeSprite.getGlobalBounds().intersects(Boss3.stone2.getGlobalBounds()))
+				{
+					startt = clock();
+					HP--;
+					state = 1;
+				}
+			}
+			if (state == 0)
+			{
+				if (shapeSprite.getGlobalBounds().intersects(Boss3.stone3.getGlobalBounds()))
+				{
+					startt = clock();
+					HP--;
+					state = 1;
+				}
+			}
 		}
 		else
 		{
@@ -1592,6 +1952,48 @@ void damageCal()
 					Boss2.reStick();
 				}
 			}
+			if (state == 0)
+			{
+				if (shapeSprite.getGlobalBounds().intersects(Boss3.body.getGlobalBounds()))
+				{
+					startt = clock();
+					state = 1;
+					Boss3.HP -= 5;
+				}
+			}
+			if (state == 0)
+			{
+				if (shapeSprite.getGlobalBounds().intersects(Boss3.stick.getGlobalBounds()))
+				{
+					startt = clock();
+					state = 1;
+					Boss3.reStick();
+				}
+			}
+			if (state == 0)
+			{
+				if (shapeSprite.getGlobalBounds().intersects(Boss3.stone1.getGlobalBounds()))
+				{
+					startt = clock();
+					state = 1;
+				}
+			}
+			if (state == 0)
+			{
+				if (shapeSprite.getGlobalBounds().intersects(Boss3.stone2.getGlobalBounds()))
+				{
+					startt = clock();;
+					state = 1;
+				}
+			}
+			if (state == 0)
+			{
+				if (shapeSprite.getGlobalBounds().intersects(Boss3.stone3.getGlobalBounds()))
+				{
+					startt = clock();
+					state = 1;
+				}
+			}
 		}
 		else
 		{
@@ -1725,6 +2127,14 @@ void shoot()
 			}
 			if (bullet == 2)
 			{
+				if (Bullet.getGlobalBounds().intersects(Boss3.body.getGlobalBounds()))
+				{
+					bullet = 3;
+					Boss3.HP -= 10;
+				}
+			}
+			if (bullet == 2)
+			{
 				i = 0;
 				for (std::vector<GROUND>::iterator it = ground.begin(); it != ground.end(); i++, it++)
 				{
@@ -1799,6 +2209,22 @@ void shoot()
 				{
 					bullet = 3;
 					Boss1.HP -= 10;
+				}
+			}
+			if (bullet == 2)
+			{
+				if (Bullet.getGlobalBounds().intersects(Boss2.body.getGlobalBounds()))
+				{
+					bullet = 3;
+					Boss2.HP -= 10;
+				}
+			}
+			if (bullet == 2)
+			{
+				if (Bullet.getGlobalBounds().intersects(Boss3.body.getGlobalBounds()))
+				{
+					bullet = 3;
+					Boss3.HP -= 10;
 				}
 			}
 			if (bullet == 2)
@@ -2055,6 +2481,14 @@ void scratch()
 				Boss2.HP -= attackDamage;
 			}
 		}
+		if (attack == 2)
+		{
+			if (attackSprite.getGlobalBounds().intersects(Boss3.body.getGlobalBounds()))
+			{
+				attack = 3;
+				Boss3.HP -= attackDamage;
+			}
+		}
 	}
 	if (dif > 1)
 	{
@@ -2247,11 +2681,35 @@ void loadTexture()
 	}
 	if (!ground2Texture.loadFromFile("maps/block2.png"))
 	{
-		std::cout << "gameBG2 Load failed " << std::endl;
+		std::cout << "block2 Load failed " << std::endl;
 	}
 	if (!underGround2Texture.loadFromFile("maps/under2.png"))
 	{
-		std::cout << "gameBG2 Load failed " << std::endl;
+		std::cout << "under2 Load failed " << std::endl;
+	}
+	if (!gameBG3Texture.loadFromFile("maps/gameBG3.png"))
+	{
+		std::cout << "gameBG3 Load failed " << std::endl;
+	}
+	if (!ground3Texture.loadFromFile("maps/block3.png"))
+	{
+		std::cout << "block3 Load failed " << std::endl;
+	}
+	if (!underGround3Texture.loadFromFile("maps/under3.png"))
+	{
+		std::cout << "under3 Load failed " << std::endl;
+	}
+	if (!boss3rightTexture.loadFromFile("sprites/boss3right.png"))
+	{
+		std::cout << "boss3right Load failed " << std::endl;
+	}
+	if (!boss3leftTexture.loadFromFile("sprites/boss3left.png"))
+	{
+		std::cout << "boss3left Load failed " << std::endl;
+	}
+	if (!stoneTexture.loadFromFile("assets/Stone.png"))
+	{
+		std::cout << "stone Load failed " << std::endl;
 	}
 }
 
@@ -2913,6 +3371,9 @@ void gameDraw()
 	window.draw(heart);
 	window.draw(fishForShow);
 	window.draw(fishboneForShow);
+	window.draw(Boss3.stone1);
+	window.draw(Boss3.stone2);
+	window.draw(Boss3.stone3);
 	if (cItem == 2) { window.draw(item2); }
 	else if (cItem == 3) { window.draw(item3); }
 	window.draw(clawForShow);
@@ -2947,6 +3408,11 @@ void gameDraw()
 	{
 		window.draw(Boss2.body);
 		window.draw(Boss2.stick);
+	}
+	if (Boss3.HP > 0)
+	{
+		window.draw(Boss3.body);
+		window.draw(Boss3.stick);
 	}
 	if (bullet < 3 && bullet > 0) window.draw(Bullet);
 	if (attack < 4 && attack > 0)window.draw(attackSprite);
@@ -3016,6 +3482,11 @@ void gameCal()
 		{
 			Boss2.move();
 			Boss2.shot();
+		}
+		if (Boss3.HP > 0)
+		{
+			Boss3.move();
+			Boss3.shot();
 		}
 	}
 	if (bullet > 0)
@@ -3568,6 +4039,74 @@ void stage2boss()
 		fish += 40;
 		score += 500;
 		endx = 5800;
+		moveView = 0;
+		while ((view.getCenter().x - shapeSprite.getPosition().x >= -16) && view.getCenter().x - 540 > startx)
+		{
+			view.move(-0.18 * Speed, 0);
+		}
+		while ((view.getCenter().x - shapeSprite.getPosition().x <= 16) && view.getCenter().x + 540 < endx)
+		{
+			view.move(.18 * Speed, 0);
+		}
+	}
+}
+
+void stage3()
+{
+	startx = 0;
+	endx = 1810;
+	shapeSprite.setPosition(spawn);
+	gameBG.setTexture(gameBG3Texture);
+	gameBG.setTextureRect(sf::IntRect(0, 0, 2880, 720));
+	setGround3();
+	setMonster3();
+	setChest3();
+}
+
+void setGround3()
+{
+	//  ground.push_back(GROUND(sizex,	sizey,	posx,	posy,	g,	underground)); 
+	ground.push_back(GROUND(	480.0,	32.0,	0.0,	600.0,	4,	4)); // 0
+	ground.push_back(GROUND(	1090.0,	32.0,	480.0,	568.0,	4,	4)); // 1
+	ground.push_back(GROUND(	240.0,	32.0,	1570.0,	600.0,	4,	4)); // 2
+}
+
+void setMonster3()
+{
+	Boss3.set(1400, 568);
+}
+
+void setChest3()
+{
+	CHEST[0].set(360, 600);  // 0
+}
+
+void stage3boss()
+{
+	if (view.getCenter().x > 600 && view.getCenter().x < 1030 && Boss3.HP > 0)
+	{
+		while (view.getCenter().x > 600 && view.getCenter().x < 1030 && Boss3.HP > 0)
+		{
+			view.move(0.5, 0);
+			window.setView(view);
+			setHead();
+			gameDraw();
+		}
+		for (int i = 0; i < nb; i++) NBear[i].re();
+		for (int i = 0; i < fb; i++) FISHBONE[i].re();
+		for (int i = 0; i < tb; i++) TBear[i].re();
+		startx = 485;
+		endx = 1565;
+		moveView = 1;
+		Speed = 1.35;
+		Boss3.skill = clock();
+	}
+	if (Boss3.HP <= 0 && Boss3.HP > -50)
+	{
+		Boss3.re();
+		fish += 40;
+		score += 500;
+		endx = 1810;
 		moveView = 0;
 		while ((view.getCenter().x - shapeSprite.getPosition().x >= -16) && view.getCenter().x - 540 > startx)
 		{

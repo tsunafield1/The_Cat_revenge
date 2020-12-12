@@ -1,5 +1,6 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include <SFML/Graphics.hpp>
+#include <SFML/Audio.hpp>
 #include <iostream>
 #include <time.h>
 #include <string>
@@ -63,6 +64,13 @@ sf::Texture ground1Texture, underGround1Texture, bigstickTexture, boss1rightText
 sf::Texture menuBGTexture, exitBGTexture,gameBG1Texture, leaderBGTexture, gameBGShopTexture,fishShopTexture;
 sf::Texture groundShopTexture, underGroundShopTexture, gameBG2Texture, ground2Texture, underGround2Texture, gameBG3Texture, ground3Texture, underGround3Texture;
 sf::Texture boss3rightTexture, boss3leftTexture,stoneTexture,pauseBGTexture,gameoverBGTexture, congratBGTexture;
+sf::SoundBuffer damagedBF, throwfishBF, buyBF, gameoverBF, congratBF, TBearthrowBF, TBeardamagedBF, TBeardeadBF, NBeardamagedBF;
+sf::SoundBuffer NBeardeadBF, bossthrowBF, bossroarBF, bossdamagedBF, bossdeadBF, useitemBF, clawBF, collectfishBF, collectitemBF;
+sf::SoundBuffer pauseinBF, pauseoutBF, UIBF, jumpBF, chestBF;
+sf::Sound damagedEF, throwfishEF, buyEF, gameoverEF, congratEF, TBeardamagedEF, TBeardeadEF, NBeardamagedEF;
+sf::Sound NBeardeadEF, bossdamagedEF, bossdeadEF, useitemEF, clawEF, collectfishEF, collectitemEF;
+sf::Sound pauseinEF, pauseoutEF, UIEF, jumpEF, chestEF;
+sf::Music menuBGM, stage1BGM, boss1BGM, stage2BGM, boss2BGM, stage3BGM, shopBGM;
 double speed = 0; // use when jumping or falling
 bool down = 0, up = 0; // state of jumping
 FILE* fp;
@@ -275,6 +283,7 @@ public:
 	float width = 27, height = 54;
 	sf::Sprite body;
 	sf::Sprite stick;
+	sf::Sound throwEF;
 	void re()
 	{
 		int rng = rand() % 100;
@@ -299,6 +308,8 @@ public:
 		if (HP == -50) { stick.setTexture(stickTexture);
 		body.setTexture(throwBearTexture);
 		}
+		throwEF.setBuffer(TBearthrowBF);
+		throwEF.setVolume(40);
 		stick.setTextureRect(sf::IntRect(0, 0, 0, 0));
 		body.setTextureRect(sf::IntRect(0, 0, 0, 0));
 		body.setPosition(x, y - height + 0.0001);
@@ -351,6 +362,7 @@ public:
 			else if (dif <= 0.225) body.setTextureRect(sf::IntRect(15, 9, width+3, height));
 			else {
 				th = 1;
+				throwEF.play();
 				start = clock();
 			}
 		}
@@ -362,6 +374,7 @@ public:
 			else if (dif <= 0.225) body.setTextureRect(sf::IntRect(216, 73, width + 3, height));
 			else {
 				th = 2;
+				throwEF.play();
 				start = clock();
 			}
 		}
@@ -435,9 +448,11 @@ public:
 	int roar = 0;
 	int animation = 0;
 	int random = 3;
+	int RS = 0;
 	float width = 89, height = 89;
 	sf::Sprite body;
 	sf::Sprite stick;
+	sf::Sound throwEF, roarEF;
 	void re()
 	{
 		body.setPosition(-100, -100);
@@ -454,6 +469,9 @@ public:
 			body.setTexture(boss1leftTexture);
 			body.setTextureRect(sf::IntRect(width * ((animation / 250) % 3), 0, width, height));
 		}
+		throwEF.setBuffer(bossthrowBF);
+		throwEF.setVolume(50);
+		roarEF.setBuffer(bossroarBF);
 		body.setPosition(x, y - height + 0.0001);
 		this->HP = 200;
 	}
@@ -488,6 +506,7 @@ public:
 			random %= 2;
 			spw = 0;
 			roar = 0;
+			RS = 0;
 			skill = clock();
 			start = clock();
 		}
@@ -531,6 +550,7 @@ public:
 					else if (dif <= 2.3) body.setTextureRect(sf::IntRect(711 - width * 5, 89, width, height));
 					else {
 						th = 1;
+						throwEF.play();
 						start = clock();
 					}
 				}
@@ -541,6 +561,7 @@ public:
 					else if (dif <= 2.3) body.setTextureRect(sf::IntRect(width * 5, 89, width, height));
 					else {
 						th = 2;
+						throwEF.play();
 						start = clock();
 					}
 				}
@@ -556,6 +577,11 @@ public:
 				if(dif <= 2) body.setTextureRect(sf::IntRect(711 - width * ((animation / 250) % 3), 89*3, width, height));
 				else if (dif <= 4)
 				{
+					if (RS == 0)
+					{
+						roarEF.play();
+						RS = 1;
+					}
 					body.setTextureRect(sf::IntRect(711 - width * 3, 89*3+1, width, height));
 					if (roar == 0)
 					{
@@ -600,6 +626,11 @@ public:
 				if (dif <= 2) body.setTextureRect(sf::IntRect(width * ((animation / 250) % 3), 89*3, width, height));
 				else if (dif <= 4)
 				{
+					if (RS == 0)
+					{
+						roarEF.play();
+						RS = 1;
+					}
 					body.setTextureRect(sf::IntRect(width * 3 , 89*3 +1, width, height));
 					if (roar == 0)
 					{
@@ -712,6 +743,7 @@ public:
 	float width = 89, height = 89;
 	sf::Sprite body;
 	sf::Sprite stick;
+	sf::Sound throwEF;
 	void re()
 	{
 		body.setPosition(-100, -100);
@@ -728,6 +760,8 @@ public:
 			body.setTexture(boss1leftTexture);
 			body.setTextureRect(sf::IntRect(width * ((animation / 250) % 3), 0, width, height));
 		}
+		throwEF.setBuffer(bossthrowBF);
+		throwEF.setVolume(50);
 		body.setPosition(x, y - height + 0.0001);
 		this->HP = 300;
 		this->head = 2;
@@ -782,6 +816,7 @@ public:
 				else if ((double)(endt - start) / CLOCKS_PER_SEC <= 0.3) body.setTextureRect(sf::IntRect(711 - width * 5, 89, width, height));
 				else {
 					th = 1;
+					throwEF.play();
 					start = clock();
 				}
 			}
@@ -792,6 +827,7 @@ public:
 				else if ((double)(endt - start) / CLOCKS_PER_SEC <= 0.3) body.setTextureRect(sf::IntRect(width * 5, 89, width, height));
 				else {
 					th = 2;
+					throwEF.play();
 					start = clock();
 				}
 			}
@@ -913,12 +949,14 @@ public:
 	int STATE;
 	int roar;
 	int spw;
+	int RS = 0;
 	float width = 178, height = 178;
 	sf::Sprite body;
 	sf::Sprite stick;
 	sf::Sprite stone1;
 	sf::Sprite stone2;
 	sf::Sprite stone3;
+	sf::Sound throwEF, roarEF;
 	void re()
 	{
 		body.setPosition(-100, -100);
@@ -939,6 +977,9 @@ public:
 			stone3.setTexture(stoneTexture);
 		}
 		body.setPosition(x, y - height + 1.0001);
+		throwEF.setBuffer(bossthrowBF);
+		throwEF.setVolume(50);
+		roarEF.setBuffer(bossroarBF);
 		this->HP = 600;
 		this->head = 2;
 		ran = rand() % 3;
@@ -973,6 +1014,11 @@ public:
 			}
 			else if (dif <= 4)
 			{
+				if (RS == 0)
+				{
+					roarEF.play();
+					RS = 1;
+				}
 				body.setTextureRect(sf::IntRect(1422 - width * 3, height * 3 + 3, width, height));
 				if (roar == 0)
 				{
@@ -1026,6 +1072,7 @@ public:
 						else if ((double)(endt - start) / CLOCKS_PER_SEC <= 0.3) body.setTextureRect(sf::IntRect(1422 - width * 5, height + 2, width, height));
 						else {
 							th = 1;
+							throwEF.play();
 							start = clock();
 						}
 					}
@@ -1036,6 +1083,7 @@ public:
 						else if ((double)(endt - start) / CLOCKS_PER_SEC <= 0.3) body.setTextureRect(sf::IntRect(width * 5, height + 2, width, height));
 						else {
 							th = 2;
+							throwEF.play();
 							start = clock();
 						}
 					}
@@ -1047,6 +1095,7 @@ public:
 				}
 				else if (dif > 19)
 				{
+					RS = 0;
 					skill = clock();
 					ran = rand() % 3;
 					if (HP <= 300)
@@ -1076,6 +1125,7 @@ public:
 				}
 				else if (dif > 12)
 				{
+					RS = 0;
 					skill = clock();
 					ran = rand() % 3;
 					if (HP <= 300)
@@ -1120,6 +1170,7 @@ public:
 				if (dif > 8)
 				{
 					spw = 0;
+					RS = 0;
 					skill = clock();
 					ran = rand() % 3;
 					if (HP <= 300)
@@ -1139,6 +1190,11 @@ public:
 			}
 			else if (dif <= 4)
 			{
+				if (RS == 0)
+				{
+					roarEF.play();
+					RS = 1;
+				}
 				body.setTextureRect(sf::IntRect(1422 - width * 3, height * 3 + 3, width, height));
 				if (roar == 0)
 				{
@@ -1192,6 +1248,7 @@ public:
 						else if ((double)(endt - start) / CLOCKS_PER_SEC <= 0.3) body.setTextureRect(sf::IntRect(1422 - width * 5, height + 2, width, height));
 						else {
 							th = 1;
+							throwEF.play();
 							start = clock();
 						}
 					}
@@ -1202,6 +1259,7 @@ public:
 						else if ((double)(endt - start) / CLOCKS_PER_SEC <= 0.3) body.setTextureRect(sf::IntRect(width * 5, height + 2, width, height));
 						else {
 							th = 2;
+							throwEF.play();
 							start = clock();
 						}
 					}
@@ -1213,6 +1271,7 @@ public:
 				}
 				else if (dif > 18)
 				{
+					RS = 0;
 					skill = clock();
 					STATE = 3;
 				}
@@ -1237,6 +1296,7 @@ public:
 				}
 				else if (dif > 10)
 				{
+					RS = 0;
 					skill = clock();
 					ran = 0;
 				}
@@ -1276,6 +1336,7 @@ public:
 				}
 				if (dif > 6)
 				{
+					RS = 0;
 					spw = 0;
 					skill = clock();
 					ran = 1;
@@ -1399,13 +1460,13 @@ public:
 		body.setPosition(x,y);
 		this->state = 1;
 		this->air = 1;
-		this->speed = 0.3;
+		this->speed = 0.3*Speed;
 	}
 	void move()
 	{
 		if (air == 1)
 		{
-			speed -= 0.0005;
+			speed -= 0.0005 * Speed * Speed;
 			body.move(.0f, -speed);
 			i = 0;
 			for (std::vector<GROUND>::iterator it = ground.begin(); it != ground.end(); i++, it++)
@@ -1422,7 +1483,7 @@ public:
 		}
 		if (air == 2)
 		{
-			speed += 0.0005;
+			speed += 0.0005*Speed*Speed;
 			body.move(0.f, speed);
 			i = 0;
 			for (std::vector<GROUND>::iterator it = ground.begin(); it != ground.end(); i++, it++)
@@ -1526,15 +1587,23 @@ void setMonster3();
 void setChest3();
 void stage3boss();
 void saveData();
+void loadSound();
 
 Fish FISH[f];
 chest CHEST[ch];
-sf::RenderWindow window(sf::VideoMode(1080, 720), "Test", sf::Style::Default);
+sf::RenderWindow window(sf::VideoMode(1080, 720), "The Cat's revenge", sf::Style::Default);
 
 int main()
 {
 	srand(time(NULL));
 	startView = window.getView();
+	if (!menuBGTexture.loadFromFile("assets/menuBG.png"))
+	{
+		std::cout << "menuBG Load failed " << std::endl;
+	}
+	menuBG.setTexture(menuBGTexture);
+	window.draw(menuBG);
+	window.display();
 	setup();
 	menu:
 	start();
@@ -1555,10 +1624,13 @@ int main()
 		gameDraw();
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape))
 		{
+			pauseinEF.play();
 			gamePause();
+			pauseoutEF.play();
 		}
 		if (HP < 0)
 		{
+			gameoverEF.play();
 			gameover();
 		}
 		if (BTM == 1)goto menu;
@@ -1577,10 +1649,13 @@ int main()
 		}
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape))
 		{
+			pauseinEF.play();
 			gamePause();
+			pauseoutEF.play();
 		}
 		if (HP < 0)
 		{
+			gameoverEF.play();
 			gameover();
 		}
 		if (BTM == 1)goto menu;
@@ -1603,10 +1678,13 @@ int main()
 		gameDraw();
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape))
 		{
+			pauseinEF.play();
 			gamePause();
+			pauseoutEF.play();
 		}
 		if (HP < 0)
 		{
+			gameoverEF.play();
 			gameover();
 		}
 		if (BTM == 1)goto menu;
@@ -1625,10 +1703,13 @@ int main()
 		}
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape))
 		{
+			pauseinEF.play();
 			gamePause();
+			pauseoutEF.play();
 		}
 		if (HP < 0)
 		{
+			gameoverEF.play();
 			gameover();
 		}
 		if (BTM == 1)goto menu;
@@ -1648,14 +1729,18 @@ int main()
 		gameDraw();
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape))
 		{
+			pauseinEF.play();
 			gamePause();
+			pauseoutEF.play();
 		}
 		if (HP < 0)
 		{
+			gameoverEF.play();
 			gameover();
 		}
 		if (BTM == 1)goto menu;
 	}
+	congratEF.play();
 	gameover();
 	goto menu;
 	return 0;
@@ -1728,13 +1813,10 @@ void mainCharacter()
 	}
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::J) && attack == 0)
 	{
+		clawEF.play();
 		AH = RH;
 		attack = 1;
 		startAttack = clock();
-	}
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::P))
-	{
-		std::cout << shapeSprite.getPosition().x << "     " << shapeSprite.getPosition().y << std::endl;
 	}
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::E))
 	{
@@ -1745,6 +1827,7 @@ void mainCharacter()
 			{
 				if (shapeSprite.getGlobalBounds().intersects(CHEST[i].body.getGlobalBounds()) && CHEST[i].state == 1)
 				{
+					chestEF.play();
 					CHEST[i].open();
 					s = 1;
 					break;
@@ -1755,6 +1838,7 @@ void mainCharacter()
 			{
 				if (shapeSprite.getGlobalBounds().intersects(ITEM[i].body.getGlobalBounds())&&ITEM[i].air != 1)
 				{
+					collectitemEF.play();
 					s = 1;
 					if (ITEM[i].num == 1)
 					{
@@ -1797,6 +1881,7 @@ void mainCharacter()
 	}
 	if ((sf::Keyboard::isKeyPressed(sf::Keyboard::W)) && !down && !up)
 	{
+		jumpEF.play();
 		speed = 0.9*Speed;
 		up = 1;
 	}
@@ -2025,6 +2110,7 @@ void damageCal()
 					state = 1;
 				}
 			}
+			if (state == 1)damagedEF.play();
 		}
 		else
 		{
@@ -2214,6 +2300,7 @@ void damageCal()
 					state = 1;
 				}
 			}
+			if (state == 1)damagedEF.play();
 		}
 		else
 		{
@@ -2284,6 +2371,7 @@ void shoot()
 	{
 		if (bullet == 1)
 		{
+			throwfishEF.play();
 			bullet = 2;
 			if (BH == 1)
 			{
@@ -2312,7 +2400,12 @@ void shoot()
 				{
 					bullet = 3;
 					NBear[i].HP -= 10;
-					if (NBear[i].HP <= 0) score += 10;
+					if (NBear[i].HP <= 0)
+					{
+						NBeardeadEF.play();
+						score += 10;
+					}
+					else NBeardamagedEF.play();
 					break;
 				}
 			}
@@ -2324,7 +2417,12 @@ void shoot()
 					{
 						bullet = 3;
 						TBear[i].HP -= 10;
-						if (TBear[i].HP <= 0) score += 20;
+						if (TBear[i].HP <= 0)
+						{
+							TBeardeadEF.play();
+							score += 20;
+						}
+						else TBeardamagedEF.play();
 						break;
 					}
 				}
@@ -2335,6 +2433,7 @@ void shoot()
 				{
 					bullet = 3;
 					Boss1.HP -= 10;
+					bossdamagedEF.play();
 				}
 			}
 			if (bullet == 2)
@@ -2343,6 +2442,7 @@ void shoot()
 				{
 					bullet = 3;
 					Boss2.HP -= 10;
+					bossdamagedEF.play();
 				}
 			}
 			if (bullet == 2)
@@ -2351,6 +2451,7 @@ void shoot()
 				{
 					bullet = 3;
 					Boss3.HP -= 10;
+					bossdamagedEF.play();
 				}
 			}
 			if (bullet == 2)
@@ -2378,6 +2479,7 @@ void shoot()
 		if (dif >= 10) fishbonecase = 0;
 		if (bullet == 1)
 		{
+			throwfishEF.play();
 			bullet = 2;
 			if (BH == 1)
 			{
@@ -2406,7 +2508,12 @@ void shoot()
 				{
 					bullet = 3;
 					NBear[i].HP -= 10;
-					if (NBear[i].HP <= 0) score += 10;
+					if (NBear[i].HP <= 0)
+					{
+						NBeardeadEF.play();
+						score += 10;
+					}
+					else NBeardamagedEF.play();
 					break;
 				}
 			}
@@ -2418,7 +2525,12 @@ void shoot()
 					{
 						bullet = 3;
 						TBear[i].HP -= 10;
-						if (TBear[i].HP <= 0) score += 20;
+						if (TBear[i].HP <= 0)
+						{
+							TBeardeadEF.play();
+							score += 20;
+						}
+						else TBeardamagedEF.play();
 						break;
 					}
 				}
@@ -2429,6 +2541,7 @@ void shoot()
 				{
 					bullet = 3;
 					Boss1.HP -= 10;
+					bossdamagedEF.play();
 				}
 			}
 			if (bullet == 2)
@@ -2437,6 +2550,7 @@ void shoot()
 				{
 					bullet = 3;
 					Boss2.HP -= 10;
+					bossdamagedEF.play();
 				}
 			}
 			if (bullet == 2)
@@ -2445,6 +2559,7 @@ void shoot()
 				{
 					bullet = 3;
 					Boss3.HP -= 10;
+					bossdamagedEF.play();
 				}
 			}
 			if (bullet == 2)
@@ -2670,7 +2785,13 @@ void scratch()
 						}
 					}
 				}
-				if (NBear[i].HP <= 0) score += 10;
+				if (NBear[i].HP <= 0)
+				{
+					NBeardeadEF.play();
+					score += 10;
+				}
+				else NBeardamagedEF.play();
+				break;
 			}
 		}
 		if (attack == 2)
@@ -2681,7 +2802,13 @@ void scratch()
 				{
 					attack = 3;
 					TBear[i].HP -= attackDamage;
-					if (TBear[i].HP <= 0) score += 20;
+					if (TBear[i].HP <= 0)
+					{
+						TBeardeadEF.play();
+						score += 20;
+					}
+					else TBeardamagedEF.play();
+					break;
 				}
 			}
 		}
@@ -2689,6 +2816,7 @@ void scratch()
 		{
 			if (attackSprite.getGlobalBounds().intersects(Boss1.body.getGlobalBounds()))
 			{
+				bossdamagedEF.play();
 				attack = 3;
 				Boss1.HP -= attackDamage;
 			}
@@ -2697,6 +2825,7 @@ void scratch()
 		{
 			if (attackSprite.getGlobalBounds().intersects(Boss2.body.getGlobalBounds()))
 			{
+				bossdamagedEF.play();
 				attack = 3;
 				Boss2.HP -= attackDamage;
 			}
@@ -2705,6 +2834,7 @@ void scratch()
 		{
 			if (attackSprite.getGlobalBounds().intersects(Boss3.body.getGlobalBounds()))
 			{
+				bossdamagedEF.play();
 				attack = 3;
 				Boss3.HP -= attackDamage;
 			}
@@ -2834,10 +2964,6 @@ void loadTexture()
 	if (!underGround1Texture.loadFromFile("maps/under1.png"))
 	{
 		std::cout << "under1 Load failed " << std::endl;
-	}
-	if (!menuBGTexture.loadFromFile("assets/menuBG.png"))
-	{
-		std::cout << "menuBG Load failed " << std::endl;
 	}
 	if (!exitBGTexture.loadFromFile("assets/exitBG.png"))
 	{
@@ -3127,6 +3253,7 @@ void collectFish()
 			score += 10;
 			FISH[i].re();
 			fish++;
+			collectfishEF.play();
 		}
 	}
 	for (int i = 0; i < fb; i++)
@@ -3135,6 +3262,7 @@ void collectFish()
 		{
 			FISHBONE[i].re();
 			fishbone++;
+			collectfishEF.play();
 		}
 	}
 }
@@ -3146,6 +3274,7 @@ void setChest1()
 
 void use(int n)
 {
+	useitemEF.play();
 	if (n == 1)
 	{
 		HP += 1;
@@ -3187,6 +3316,7 @@ void setHead()
 
 void stage1()
 {
+	menuBGM.stop();
 	startx = 0;
 	endx = 5000;
 	shapeSprite.setPosition(spawn);
@@ -3196,10 +3326,12 @@ void stage1()
 	setMonster1();
 	setFish1();
 	setChest1();
+	stage1BGM.play();
 }
 
 void setup()
 {
+	loadSound();
 	loadTexture();
 	setSprite();
 	firstTextSet();
@@ -3260,6 +3392,7 @@ void reset()
 	attack = 0;
 	bullet = 0;
 	potion = 0;
+	state = 0;
 	fishbonecase = 0;
 	animation = 0, Ranimation = 0, Lanimation = 0;
 	RH = 1;
@@ -3270,11 +3403,19 @@ void reset()
 	down = 1;
 	Speed = 1.35;
 	BTM = 0;
+	speed = 0;
 	for (int i = 0; i < 4; i++)
 	{
 		Pillar[i].setSize(sf::Vector2f(0, 0));
 		Pillar[i].setPosition(-100, -100);
 	}
+	stage1BGM.stop();
+	boss1BGM.stop();
+	stage2BGM.stop();
+	boss2BGM.stop();
+	stage3BGM.stop();
+	shopBGM.stop();
+	menuBGM.stop();
 }
 
 void leaderboard()
@@ -3390,6 +3531,7 @@ void leaderboard()
 
 void MENU()
 {
+	menuBGM.play();
 	while (sf::Keyboard::isKeyPressed(sf::Keyboard::Enter));
 	int menu = 3;
 	close = 0;
@@ -3457,6 +3599,7 @@ void MENU()
 		{
 			if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
 			{
+				UIEF.play();
 				if (menu == 3)menu = 0;
 				else
 				{
@@ -3467,6 +3610,7 @@ void MENU()
 			}
 			if (sf::Keyboard::isKeyPressed(sf::Keyboard::S))
 			{
+				UIEF.play();
 				if (menu == 3)menu = 2;
 				else
 				{
@@ -3555,12 +3699,14 @@ void exitFromMenu()
 		{
 			if (sf::Keyboard::isKeyPressed(sf::Keyboard::A))
 			{
+				UIEF.play();
 				exit--;
 				if (exit < 1)exit = 2;
 				startEx = clock();
 			}
 			if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
 			{
+				UIEF.play();
 				exit++;
 				if (exit > 2)exit = 1;
 				startEx = clock();
@@ -3813,12 +3959,14 @@ void gamePause()
 		{
 			if (sf::Keyboard::isKeyPressed(sf::Keyboard::A))
 			{
+				UIEF.play();
 				exit--;
 				if (exit < 1)exit = 2;
 				startEx = clock();
 			}
 			if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
 			{
+				UIEF.play();
 				exit++;
 				if (exit > 2)exit = 1;
 				startEx = clock();
@@ -3951,11 +4099,11 @@ void startdata()
 	{
 		fclose(fp);
 		fp = fopen("highscore/data.txt", "w");
-		data.insert(std::pair<int, std::string>(2500, "A"));
-		data.insert(std::pair<int, std::string>(2000, "B"));
-		data.insert(std::pair<int, std::string>(1000, "C"));
-		data.insert(std::pair<int, std::string>(500, "D"));
-		data.insert(std::pair<int, std::string>(300, "E"));
+		data.insert(std::pair<int, std::string>(2500, "a"));
+		data.insert(std::pair<int, std::string>(2000, "b"));
+		data.insert(std::pair<int, std::string>(1000, "c"));
+		data.insert(std::pair<int, std::string>(500, "d"));
+		data.insert(std::pair<int, std::string>(300, "e"));
 		int i = 0;
 		for (std::map<int, std::string>::iterator it = data.begin();i<5; it++,i++)
 		{
@@ -3981,7 +4129,7 @@ void startdata()
 
 void gameover()
 {
-	int exit = 2;
+	int exit = 1;
 	gameoverBG.setPosition(window.getView().getCenter().x - 525, 20);
 	congratBG.setPosition(window.getView().getCenter().x - 525, 20);
 	startEx = clock();
@@ -4162,7 +4310,12 @@ void gameover()
 		window.draw(NAMETEXT);
 		window.display();
 		window.clear();
-		if (closeEx == 1)break;
+		if (closeEx == 1)
+		{
+			gameoverEF.stop();
+			congratEF.stop();
+			break;
+		}
 	}
 }
 
@@ -4170,6 +4323,7 @@ void stage1boss()
 {
 	if (view.getCenter().x > 3900 && view.getCenter().x < 4300 && Boss1.HP > 0)
 	{
+		stage1BGM.stop();
 		while (view.getCenter().x > 3900 && view.getCenter().x < 4300 && Boss1.HP > 0)
 		{
 			view.move(0.5, 0);
@@ -4183,10 +4337,13 @@ void stage1boss()
 		startx = 3760;
 		endx = 4840;
 		moveView = 1;
+		boss1BGM.play();
 		Boss1.skill = clock();
 	}
 	if (Boss1.HP <= 0 && Boss1.HP > -50)
 	{
+		bossdamagedEF.stop();
+		bossdeadEF.play();
 		Boss1.re();
 		fish += 20;
 		score += 300;
@@ -4223,6 +4380,7 @@ void shop()
 	Pillar[3].setSize(sf::Vector2f(50, 60));
 	Pillar[3].setPosition(744, 540);
 	setGroundShop();
+	shopBGM.play();
 }
 
 void setGroundShop()
@@ -4340,6 +4498,7 @@ void buy(int a)
 				if (fish >= price)
 				{
 					fish -= price;
+					buyEF.play();
 					switch (a)
 					{
 						case 0: {HP++; break; }
@@ -4386,12 +4545,14 @@ void buy(int a)
 		{
 			if (sf::Keyboard::isKeyPressed(sf::Keyboard::A))
 			{
+				UIEF.play();
 				exit--;
 				if (exit < 1)exit = 2;
 				startEx = clock();
 			}
 			if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
 			{
+				UIEF.play();
 				exit++;
 				if (exit > 2)exit = 1;
 				startEx = clock();
@@ -4508,6 +4669,7 @@ void stage2()
 	setMonster2();
 	setFish2();
 	setChest2();
+	stage2BGM.play();
 }
 
 void setGround2()
@@ -4615,6 +4777,7 @@ void stage2boss()
 {
 	if (view.getCenter().x > 4630 && view.getCenter().x < 5030 && Boss2.HP > 0)
 	{
+		stage2BGM.stop();
 		while (view.getCenter().x > 4630 && view.getCenter().x < 5030 && Boss2.HP > 0)
 		{
 			view.move(0.5, 0);
@@ -4629,10 +4792,13 @@ void stage2boss()
 		endx = 5565;
 		moveView = 1;
 		Speed = 1.35;
+		boss2BGM.play();
 		Boss2.skill = clock();
 	}
 	if (Boss2.HP <= 0 && Boss2.HP > -50)
 	{
+		bossdamagedEF.stop();
+		bossdeadEF.play();
 		Boss2.re();
 		fish += 40;
 		score += 500;
@@ -4659,6 +4825,7 @@ void stage3()
 	setGround3();
 	setMonster3();
 	setChest3();
+	stage3BGM.play();
 }
 
 void setGround3()
@@ -4701,6 +4868,8 @@ void stage3boss()
 	}
 	if (Boss3.HP <= 0 && Boss3.HP > -50)
 	{
+		bossdamagedEF.stop();
+		bossdeadEF.play();
 		Boss3.re();
 		score += 1000;
 		endx = 1810;
@@ -4989,4 +5158,181 @@ void saveData()
 		}
 		fclose(fp);
 	}
+}
+
+void loadSound()
+{
+	if (!damagedBF.loadFromFile("sounds/effects/damaged.ogg"))
+	{
+		std::cout << "damage" << std::endl;
+	}
+	damagedEF.setBuffer(damagedBF);
+	damagedEF.setVolume(40);
+	if (!throwfishBF.loadFromFile("sounds/effects/throwfish.ogg"))
+	{
+		std::cout << "throwfish" << std::endl;
+	}
+	throwfishEF.setBuffer(throwfishBF);
+	throwfishEF.setVolume(100);
+	if (!buyBF.loadFromFile("sounds/effects/buy.ogg"))
+	{
+		std::cout << "buy" << std::endl;
+	}
+	buyEF.setBuffer(buyBF);
+	buyEF.setVolume(60);
+	if (!gameoverBF.loadFromFile("sounds/effects/gameover.ogg"))
+	{
+		std::cout << "gameover" << std::endl;
+	}
+	gameoverEF.setBuffer(gameoverBF);
+	gameoverEF.setVolume(25);
+	if (!congratBF.loadFromFile("sounds/effects/congrat.ogg"))
+	{
+		std::cout << "congrat" << std::endl;
+	}
+	congratEF.setBuffer(congratBF);
+	congratEF.setVolume(30);
+	if (!TBearthrowBF.loadFromFile("sounds/effects/TBear throw.ogg"))
+	{
+		std::cout << "TBear throw" << std::endl;
+	}
+	if (!TBeardamagedBF.loadFromFile("sounds/effects/TBear damaged.ogg"))
+	{
+		std::cout << "TBear damaged" << std::endl;
+	}
+	TBeardamagedEF.setBuffer(TBeardamagedBF);
+	if (!TBeardeadBF.loadFromFile("sounds/effects/TBear dead.ogg"))
+	{
+		std::cout << "TBear dead" << std::endl;
+	}
+	TBeardeadEF.setBuffer(TBeardeadBF);
+	if (!NBeardamagedBF.loadFromFile("sounds/effects/NBear damaged.ogg"))
+	{
+		std::cout << "NBear damaged" << std::endl;
+	}
+	NBeardamagedEF.setBuffer(NBeardamagedBF);
+	NBeardamagedEF.setVolume(40);
+	if (!NBeardeadBF.loadFromFile("sounds/effects/NBear dead.ogg"))
+	{
+		std::cout << "NBear dead" << std::endl;
+	}
+	NBeardeadEF.setBuffer(NBeardeadBF);
+	NBeardeadEF.setVolume(40);
+	if (!bossthrowBF.loadFromFile("sounds/effects/boss throw.ogg"))
+	{
+		std::cout << "boss throw" << std::endl;
+	}
+	if (!bossroarBF.loadFromFile("sounds/effects/boss roar.ogg"))
+	{
+		std::cout << "boss roar" << std::endl;
+	}
+	if (!bossdamagedBF.loadFromFile("sounds/effects/boss damaged.ogg"))
+	{
+		std::cout << "boss damaged" << std::endl;
+	}
+	bossdamagedEF.setBuffer(bossdamagedBF);
+	bossdamagedEF.setVolume(40);
+	if (!bossdeadBF.loadFromFile("sounds/effects/boss dead.ogg"))
+	{
+		std::cout << "boss dead" << std::endl;
+	}
+	bossdeadEF.setBuffer(bossdeadBF);
+	bossdeadEF.setVolume(50);
+	if (!useitemBF.loadFromFile("sounds/effects/use item.ogg"))
+	{
+		std::cout << "use item" << std::endl;
+	}
+	useitemEF.setBuffer(useitemBF);
+	useitemEF.setVolume(25);
+	if (!clawBF.loadFromFile("sounds/effects/claw.ogg"))
+	{
+		std::cout << "claw" << std::endl;
+	}
+	clawEF.setBuffer(clawBF);
+	clawEF.setVolume(30);
+	if (!collectfishBF.loadFromFile("sounds/effects/collect fish.ogg"))
+	{
+		std::cout << "collect fish" << std::endl;
+	}
+	collectfishEF.setBuffer(collectfishBF);
+	collectfishEF.setVolume(45);
+	if (!collectitemBF.loadFromFile("sounds/effects/collect item.ogg"))
+	{
+		std::cout << "collect item" << std::endl;
+	}
+	collectitemEF.setBuffer(collectitemBF);
+	collectitemEF.setVolume(60);
+	if (!pauseinBF.loadFromFile("sounds/effects/pause in.ogg"))
+	{
+		std::cout << "pause in" << std::endl;
+	}
+	pauseinEF.setBuffer(pauseinBF);
+	pauseinEF.setVolume(30);
+	if (!pauseoutBF.loadFromFile("sounds/effects/pause out.ogg"))
+	{
+		std::cout << "pause out" << std::endl;
+	}
+	pauseoutEF.setBuffer(pauseoutBF);
+	pauseoutEF.setVolume(30);
+	if (!UIBF.loadFromFile("sounds/effects/UI.ogg"))
+	{
+		std::cout << "ui" << std::endl;
+	}
+	UIEF.setBuffer(UIBF);
+	UIEF.setVolume(60);
+	if (!jumpBF.loadFromFile("sounds/effects/jump.ogg"))
+	{
+		std::cout << "jump" << std::endl;
+	}
+	jumpEF.setBuffer(jumpBF);
+	jumpEF.setVolume(30);
+	if (!chestBF.loadFromFile("sounds/effects/chest.ogg"))
+	{
+		std::cout << "chest" << std::endl;
+	}
+	chestEF.setBuffer(chestBF);
+	chestEF.setVolume(100);
+
+	menuBGM.setLoop(1);
+	if (!menuBGM.openFromFile("sounds/musics/menu.ogg"))
+	{
+		std::cout << "menu" << std::endl;
+	}
+	menuBGM.setVolume(35);
+	stage1BGM.setLoop(1);
+	if (!stage1BGM.openFromFile("sounds/musics/stage1.ogg"))
+	{
+		std::cout << "stage1" << std::endl;
+	}
+	stage1BGM.setVolume(60);
+	boss1BGM.setLoop(1);
+	if (!boss1BGM.openFromFile("sounds/musics/boss1.ogg"))
+	{
+		std::cout << "boss1" << std::endl;
+	}
+	boss1BGM.setVolume(60);
+	stage2BGM.setLoop(1);
+	if (!stage2BGM.openFromFile("sounds/musics/stage2.ogg"))
+	{
+		std::cout << "stage2" << std::endl;
+	}
+	stage2BGM.setVolume(30);
+	boss2BGM.setLoop(1);
+	if (!boss2BGM.openFromFile("sounds/musics/boss2.ogg"))
+	{
+		std::cout << "boss2" << std::endl;
+	}
+	boss2BGM.setVolume(30);
+	stage3BGM.setLoop(1);
+	if (!stage3BGM.openFromFile("sounds/musics/stage3.ogg"))
+	{
+		std::cout << "stage3" << std::endl;
+	}
+	stage3BGM.setVolume(30);
+	shopBGM.setLoop(1);
+	if (!shopBGM.openFromFile("sounds/musics/shop.ogg"))
+	{
+		std::cout << "shop" << std::endl;
+	}
+	shopBGM.setVolume(30);
 }

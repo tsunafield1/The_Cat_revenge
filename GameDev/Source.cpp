@@ -43,6 +43,7 @@ sf::Text Leaderboard[7];
 sf::Text Score[6];
 sf::Text SHOP[4];
 sf::Text NAME;
+sf::Text showName, showID, gameCreated;
 sf::Text NAMETEXT;
 sf::Font font;
 sf::Vector2f spawn = { 30, 450 }; // spawn point
@@ -1597,17 +1598,11 @@ int main()
 {
 	srand(time(NULL));
 	startView = window.getView();
-	if (!menuBGTexture.loadFromFile("assets/menuBG.png"))
-	{
-		std::cout << "menuBG Load failed " << std::endl;
-	}
-	menuBG.setTexture(menuBGTexture);
-	window.draw(menuBG);
-	window.display();
 	setup();
 	menu:
 	start();
 	MENU();
+	quit:
 	if (close == 1)return 0;
 	//goto s;
 	stage1();
@@ -1634,6 +1629,7 @@ int main()
 			gameover();
 		}
 		if (BTM == 1)goto menu;
+		if(close == 1)goto quit;
 	}
 	reset();
 	shop();
@@ -1659,6 +1655,7 @@ int main()
 			gameover();
 		}
 		if (BTM == 1)goto menu;
+		if (close == 1)goto quit;
 	}
 	reset();
 	stage2();
@@ -1688,6 +1685,7 @@ int main()
 			gameover();
 		}
 		if (BTM == 1)goto menu;
+		if (close == 1)goto quit;
 	}
 	reset();
 	shop();
@@ -1713,6 +1711,7 @@ int main()
 			gameover();
 		}
 		if (BTM == 1)goto menu;
+		if (close == 1)goto quit;
 	}
 	reset();
 	stage3();
@@ -1739,6 +1738,7 @@ int main()
 			gameover();
 		}
 		if (BTM == 1)goto menu;
+		if (close == 1)goto quit;
 	}
 	congratEF.play();
 	gameover();
@@ -1972,6 +1972,11 @@ void mainCharacter()
 			else if (dif <= 0.2) shapeSprite.setTextureRect(sf::IntRect(626 - 40 - 185, 94, 40, 54));
 			else if (dif <= 0.3) shapeSprite.setTextureRect(sf::IntRect(626 - 40 - 454, 250, 40, 54));
 		}
+	}
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::End))
+	{
+		close = 1;
+		window.close();
 	}
 	animation++;
 }
@@ -2905,10 +2910,6 @@ void loadTexture()
 	{
 		std::cout << "claw Load failed " << std::endl;
 	}
-	if (!font.loadFromFile("fonts/ARCADECLASSIC.TTF"))//("fonts/#glidepath.ttf"))
-	{
-		std::cout << "fonts Load failed " << std::endl;
-	}
 	if (!stickTexture.loadFromFile("assets/stick.png"))
 	{
 		std::cout << "stick Load failed " << std::endl;
@@ -3331,10 +3332,64 @@ void stage1()
 
 void setup()
 {
+	if (!font.loadFromFile("fonts/ARCADECLASSIC.TTF"))//("fonts/#glidepath.ttf"))
+	{
+		std::cout << "fonts Load failed " << std::endl;
+	}
+	if (!menuBGTexture.loadFromFile("assets/menuBG.png"))
+	{
+		std::cout << "menuBG Load failed " << std::endl;
+	}
+	menuBG.setTexture(menuBGTexture);
+
+	gameCreated.setFont(font);
+	gameCreated.setFillColor(sf::Color::White);
+	gameCreated.setOutlineColor(sf::Color::Black);
+	gameCreated.setCharacterSize(100);
+	gameCreated.setStyle(sf::Text::Bold);
+	gameCreated.setString("GAME CREATED BY");
+	gameCreated.setPosition(window.getView().getCenter().x - 383.75, 80);
+
+	showName.setFont(font);
+	showName.setFillColor(sf::Color::White);
+	showName.setOutlineColor(sf::Color::Black);
+	showName.setCharacterSize(100);
+	showName.setStyle(sf::Text::Bold);
+	showName.setString("GLIT RUNGROJKIJKUL");
+	showName.setPosition(window.getView().getCenter().x - 480, 280);
+
+	showID.setFont(font);
+	showID.setFillColor(sf::Color::White);
+	showID.setOutlineColor(sf::Color::Black);
+	showID.setCharacterSize(100);
+	showID.setStyle(sf::Text::Bold);
+	showID.setString("STUDENT ID 63010022");
+	showID.setPosition(window.getView().getCenter().x - 490, 480);
+
+	window.draw(menuBG);
+	window.draw(gameCreated);
+	window.draw(showName);
+	window.draw(showID);
+	window.display();
+	window.clear();
 	loadSound();
 	loadTexture();
 	setSprite();
 	firstTextSet();
+	startt = clock();
+	endt = clock();
+	while ((endt - startt) / CLOCKS_PER_SEC <= 2)
+	{
+		sf::Event event;
+		if (window.pollEvent(event)) {}
+		window.draw(menuBG);
+		window.draw(gameCreated);
+		window.draw(showName);
+		window.draw(showID);
+		window.display();
+		window.clear();
+		endt = clock();
+	}
 }
 
 void start()
@@ -3499,6 +3554,11 @@ void leaderboard()
 			break;
 		}
 		}
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::End) || close == 1)
+		{
+			close = 1;
+			break;
+		}
 		if ((double)(endt - startM) / CLOCKS_PER_SEC > 0.2)
 		{
 			if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
@@ -3533,6 +3593,10 @@ void MENU()
 {
 	menuBGM.play();
 	while (sf::Keyboard::isKeyPressed(sf::Keyboard::Enter));
+	showName.setCharacterSize(25);
+	showName.setPosition(window.getView().getCenter().x + 260, 650);
+	showID.setCharacterSize(25);
+	showID.setPosition(window.getView().getCenter().x + 256.25, 675);
 	int menu = 3;
 	close = 0;
 	startM = clock();
@@ -3624,11 +3688,18 @@ void MENU()
 		{
 			exitFromMenu();
 		}
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::End) || close == 1)
+		{
+			close = 1;
+			break;
+		}
 		window.draw(menuBG);
 		for (int i = 0; i < 3; i++)
 		{
 			window.draw(Menu[i]);
 		}
+		window.draw(showName);
+		window.draw(showID);
 		window.display();
 		window.clear();
 		if (close == 2)break;
@@ -3694,6 +3765,11 @@ void exitFromMenu()
 		{
 			closeEx = 1;
 			while (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape));
+		}
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::End) || close == 1)
+		{
+			close = 1;
+			break;
 		}
 		if ((double)(endt - startEx) / CLOCKS_PER_SEC > 0.2)
 		{
@@ -3977,6 +4053,11 @@ void gamePause()
 			closeEx = 1;
 			while (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape));
 		}
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::End) || close == 1)
+		{
+			close = 1;
+			break;
+		}
 		window.draw(gameBG);
 		for (int i = 0; i < ch; i++)
 		{
@@ -4202,6 +4283,11 @@ void gameover()
 			BTM = 1;
 			while (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape));
 		}
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::End) || close == 1)
+		{
+			close = 1;
+			break;
+		}
 		window.draw(gameBG);
 		for (int i = 0; i < ch; i++)
 		{
@@ -4330,6 +4416,11 @@ void stage1boss()
 			window.setView(view);
 			setHead();
 			gameDraw();
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::End) || close == 1)
+			{
+				close = 1;
+				break;
+			}
 		}
 		for (int i = 0; i < nb; i++) NBear[i].re();
 		for (int i = 0; i < fb; i++)FISHBONE[i].re();
@@ -4540,6 +4631,11 @@ void buy(int a)
 		{
 			closeEx = 1;
 			while (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape));
+		}
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::End) || close == 1)
+		{
+			close = 1;
+			break;
 		}
 		if ((double)(endt - startEx) / CLOCKS_PER_SEC > 0.2)
 		{
@@ -4784,6 +4880,11 @@ void stage2boss()
 			window.setView(view);
 			setHead();
 			gameDraw();
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::End) || close == 1)
+			{
+				close = 1;
+				break;
+			}
 		}
 		for (int i = 0; i < nb; i++) NBear[i].re();
 		for (int i = 0; i < fb; i++) FISHBONE[i].re();
@@ -4856,6 +4957,11 @@ void stage3boss()
 			window.setView(view);
 			setHead();
 			gameDraw();
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::End) || close == 1)
+			{
+				close = 1;
+				break;
+			}
 		}
 		for (int i = 0; i < nb; i++) NBear[i].re();
 		for (int i = 0; i < fb; i++) FISHBONE[i].re();
@@ -4951,7 +5057,7 @@ void saveData()
 				{
 					ch = 'f';
 				}
-				else if (sf::Keyboard::isKeyPressed(sf::Keyboard::G))
+				else if (sf::Keyboard::isKeyPressed(sf::Keyboard::End))
 				{
 					ch = 'g';
 				}
@@ -5036,6 +5142,11 @@ void saveData()
 					name.push_back(ch);
 					startt = clock();
 				}
+			}
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::End) || close == 1)
+			{
+				close = 1;
+				break;
 			}
 			window.draw(gameBG);
 			if (stage == 2)
@@ -5144,19 +5255,22 @@ void saveData()
 		}
 		window.clear();
 		window.display();
-		data.erase(data.begin());
-		data.insert(std::pair<int, std::string>(score,name));
-		fp = fopen("highscore/data.txt", "w");
-		int i = 0;
-		for (std::map<int, std::string>::iterator it = data.begin(); i < 5; it++, i++)
+		if (close != 1)
 		{
-			for (int j = 0; it->second[j] != '\0'; j++)
+			data.erase(data.begin());
+			data.insert(std::pair<int, std::string>(score, name));
+			fp = fopen("highscore/data.txt", "w");
+			int i = 0;
+			for (std::map<int, std::string>::iterator it = data.begin(); i < 5; it++, i++)
 			{
-				fprintf(fp, "%c", it->second[j]);
+				for (int j = 0; it->second[j] != '\0'; j++)
+				{
+					fprintf(fp, "%c", it->second[j]);
+				}
+				fprintf(fp, " %d\n", it->first);
 			}
-			fprintf(fp, " %d\n", it->first);
+			fclose(fp);
 		}
-		fclose(fp);
 	}
 }
 

@@ -11,32 +11,32 @@ const int nb = 30, tb = 20; //  number of normal bear , number of throw bear
 const int f = 40, fb = 40, it = 7; // number of fish , number of fishbone , number of item
 const int ch = 3; // number of chest
 double Speed = 1.35;
-double startt, endt,startAttack,startB,startM,startEx,dif;
-double startP,startF; // start Potion, start fishbonecase
+double startt, endt, startAttack, startB, startM, startEx, dif;
+double startP, startF; // start Potion, start fishbonecase
 bool potion = 0; // state of potion
 bool fishbonecase = 0; // state of fishbonecase
 int g = 0; // number of ground
-int i,j;
+int i, j;
 int stage;
 int state = 0; // 1 = after recieve damage
 int attack = 0; // 0 = ready to attack, 1 = attack state , 2 = after attack
 int cItem = 0; // current item in bags 1.+HP 2.Potion 3.Fishbonecase
 int attackDamage = 5;
-int animation = 0,Ranimation = 0,Lanimation = 0;
-std::string tHP, tScore , tFish , tFishbone; // String of HP , Score , Fish , Fishbone
+int animation = 0, Ranimation = 0, Lanimation = 0;
+std::string tHP, tScore, tFish, tFishbone; // String of HP , Score , Fish , Fishbone
 int HP = 3; // Hit point
 int score = 0;
 int fish = 0; // Fish
 int fishbone = 2; // Ammo
 bool gr = 0; // is sprite on the ground?  
-int RH = 1,BH,AH; // recent head of main character
+int RH = 1, BH, AH; // recent head of main character
 int bullet = 0; // bullet status
-int bx,endx,startx; // x of bullet,Highest x,Lowest of x 
+int bx, endx, startx; // x of bullet,Highest x,Lowest of x 
 int close = 0;
 int moveView = 0;
 int BTM = 0;
 std::string name;
-sf::Text textHP,textScore,textFish,textFishbone;
+sf::Text textHP, textScore, textFish, textFishbone;
 sf::Text Exit[3];
 sf::Text Menu[3];
 sf::Text Leaderboard[7];
@@ -53,18 +53,18 @@ sf::Sprite heart;
 sf::Sprite test;
 sf::Sprite heartShop, rngboxShop, weaponShop, fishboneShop;
 sf::Sprite fishShop1, fishShop2, fishShop3, fishShop4;
-sf::Sprite inventory1,inventory2,item2,item3;
-sf::Sprite fishForShow,fishboneForShow,clawForShow;
+sf::Sprite inventory1, inventory2, item2, item3;
+sf::Sprite fishForShow, fishboneForShow, clawForShow;
 sf::Sprite Bullet;
-sf::Sprite menuBG, exitBG,gameBG,leaderBG,pauseBG,gameoverBG, congratBG;
+sf::Sprite menuBG, exitBG, gameBG, leaderBG, pauseBG, gameoverBG, congratBG;
 sf::RectangleShape Pillar[4];
-sf::View view,startView;
+sf::View view, startView;
 sf::Texture playerTextureRight, playerTextureLeft, fishboneTexture, attackTexture, stickTexture, fishTexture, chestTexture, item1Texture, item2Texture, item3Texture;
-sf::Texture heartTexture,fishForShowTexture, fishboneForShowTexture, normalBearTexture, throwBearTexture, fishboneDropTexture, inventoryTexture, rngboxTexture, weapon1Texture, weapon2Texture, weapon3Texture;
+sf::Texture heartTexture, fishForShowTexture, fishboneForShowTexture, normalBearTexture, throwBearTexture, fishboneDropTexture, inventoryTexture, rngboxTexture, weapon1Texture, weapon2Texture, weapon3Texture;
 sf::Texture ground1Texture, underGround1Texture, bigstickTexture, boss1rightTexture, boss1leftTexture;
-sf::Texture menuBGTexture, exitBGTexture,gameBG1Texture, leaderBGTexture, gameBGShopTexture,fishShopTexture;
+sf::Texture menuBGTexture, exitBGTexture, gameBG1Texture, leaderBGTexture, gameBGShopTexture, fishShopTexture;
 sf::Texture groundShopTexture, underGroundShopTexture, gameBG2Texture, ground2Texture, underGround2Texture, gameBG3Texture, ground3Texture, underGround3Texture;
-sf::Texture boss3rightTexture, boss3leftTexture,stoneTexture,pauseBGTexture,gameoverBGTexture, congratBGTexture;
+sf::Texture boss3rightTexture, boss3leftTexture, stoneTexture, pauseBGTexture, gameoverBGTexture, congratBGTexture;
 sf::SoundBuffer damagedBF, throwfishBF, buyBF, gameoverBF, congratBF, TBearthrowBF, TBeardamagedBF, TBeardeadBF, NBeardamagedBF;
 sf::SoundBuffer NBeardeadBF, bossthrowBF, bossroarBF, bossdamagedBF, bossdeadBF, useitemBF, clawBF, collectfishBF, collectitemBF;
 sf::SoundBuffer pauseinBF, pauseoutBF, UIBF, jumpBF, chestBF;
@@ -80,10 +80,10 @@ std::map<int, std::string> data;
 class GROUND
 {
 public:
-	
+
 	sf::Sprite ground;
 	sf::Sprite underGround;
-	GROUND(float sizex,float sizey,float posx,float posy,int n,int under)
+	GROUND(float sizex, float sizey, float posx, float posy, int n, int under)
 	{
 		if (n == 1)
 		{
@@ -101,7 +101,7 @@ public:
 		{
 			ground.setTexture(ground3Texture);
 		}
-		ground.setPosition(posx,posy);
+		ground.setPosition(posx, posy);
 		ground.setTextureRect(sf::IntRect(0, 0, sizex, sizey));
 		g++;
 		if (under == 1)
@@ -171,12 +171,12 @@ public:
 	}
 };
 Fishbone FISHBONE[fb];
-class normalBear 
+class normalBear
 {
 public:
 
 	int head = 2;  // 1 = Right , 2 = Left
-	int HP= -50;
+	int HP = -50;
 	int animation;
 	float width = 24, height = 41;
 	int on;  // which ground that body stay
@@ -190,7 +190,7 @@ public:
 			{
 				if (FISHBONE[i].state != 1)
 				{
-					FISHBONE[i].set(body.getPosition().x+((this->width-FISHBONE[i].width)/2), body.getPosition().y+this->height-FISHBONE[i].height-6);
+					FISHBONE[i].set(body.getPosition().x + ((this->width - FISHBONE[i].width) / 2), body.getPosition().y + this->height - FISHBONE[i].height - 6);
 					break;
 				}
 			}
@@ -203,7 +203,7 @@ public:
 		head = (rand() % 2) + 1;
 		body.setTexture(normalBearTexture);
 		body.setTextureRect(sf::IntRect(0, 0, 0, 0));
-		body.setPosition(x, y - height +0.0001);
+		body.setPosition(x, y - height + 0.0001);
 		HP = 10;
 		animation = 0;
 	}
@@ -214,14 +214,14 @@ public:
 		{
 			body.move(0.075f * Speed, .0f);
 			i = 0;
-			for (std::vector<GROUND>::iterator it = ground.begin(); it!=ground.end(); i++,it++)
+			for (std::vector<GROUND>::iterator it = ground.begin(); it != ground.end(); i++, it++)
 			{
 				if (body.getGlobalBounds().intersects(ground[i].ground.getGlobalBounds()))
 				{
 					on = i;
 					if (body.getPosition().y + 31 > ground[i].ground.getPosition().y)
 					{
-						body.move(-0.075f*Speed, 0.f);
+						body.move(-0.075f * Speed, 0.f);
 						head = 2;
 						break;
 					}
@@ -298,7 +298,7 @@ public:
 					break;
 				}
 			}
-		}	
+		}
 		body.setPosition(-100, -100);
 		stick.setPosition(-100, -100);
 		stick.setTextureRect({ 0,0,0,0 });
@@ -306,8 +306,9 @@ public:
 	}
 	void set(float x, float y)
 	{
-		if (HP == -50) { stick.setTexture(stickTexture);
-		body.setTexture(throwBearTexture);
+		if (HP == -50) {
+			stick.setTexture(stickTexture);
+			body.setTexture(throwBearTexture);
 		}
 		throwEF.setBuffer(TBearthrowBF);
 		throwEF.setVolume(40);
@@ -322,7 +323,7 @@ public:
 		if (shapeSprite.getPosition().x > body.getPosition().x)
 		{
 			head = 1;
-			body.setTextureRect(sf::IntRect(216 - 40*((animation/250)%3), 9, width, height));
+			body.setTextureRect(sf::IntRect(216 - 40 * ((animation / 250) % 3), 9, width, height));
 			// turn right
 		}
 		else
@@ -337,19 +338,19 @@ public:
 			{
 				animation = 0;
 				stick.setTextureRect(sf::IntRect(0, 0, 30, 24));
-				stick.setPosition(body.getPosition().x+width+3,body.getPosition().y +14);
+				stick.setPosition(body.getPosition().x + width + 3, body.getPosition().y + 14);
 				sx = stick.getPosition().x;
 				th = -1;
 				start = clock();
 			}
 		}
-		else if(head == 2 && th == 0)
+		else if (head == 2 && th == 0)
 		{
 			if (body.getPosition().x - shapeSprite.getPosition().x < 630)
 			{
 				animation = 0;
 				stick.setTextureRect(sf::IntRect(0, 0, 30, 24));
-				stick.setPosition(body.getPosition().x-30-3, body.getPosition().y +14);
+				stick.setPosition(body.getPosition().x - 30 - 3, body.getPosition().y + 14);
 				sx = stick.getPosition().x;
 				th = -2;
 				start = clock();
@@ -358,9 +359,9 @@ public:
 		if (th == -1)
 		{
 			dif = (endt - start) / CLOCKS_PER_SEC;
-			if (dif <= 0.075) body.setTextureRect(sf::IntRect(95 , 9, width, height));
+			if (dif <= 0.075) body.setTextureRect(sf::IntRect(95, 9, width, height));
 			else if (dif <= 0.15) body.setTextureRect(sf::IntRect(55, 9, width, height));
-			else if (dif <= 0.225) body.setTextureRect(sf::IntRect(15, 9, width+3, height));
+			else if (dif <= 0.225) body.setTextureRect(sf::IntRect(15, 9, width + 3, height));
 			else {
 				th = 1;
 				throwEF.play();
@@ -402,7 +403,7 @@ public:
 	void shot()
 	{
 		dif = (endt - start) / CLOCKS_PER_SEC;
-		int a = ((int)(dif / 0.075))%4;
+		int a = ((int)(dif / 0.075)) % 4;
 		if (th == 1)
 		{
 			stickSet(a);
@@ -411,7 +412,7 @@ public:
 		}
 		else if (th == 2)
 		{
-			stickSet(3-a);
+			stickSet(3 - a);
 			stick.move(-0.25 * Speed, 0);
 			if (stick.getPosition().x - sx < -600)reStick();
 		}
@@ -440,7 +441,7 @@ class boss1Bear
 {
 public:
 
-	clock_t start = 0,skill;
+	clock_t start = 0, skill;
 	int spw;
 	int sx;
 	int head; // 1 = Right , 2 = Left
@@ -493,7 +494,7 @@ public:
 			body.setTextureRect(sf::IntRect(width * ((animation / 250) % 3), 0, width, height));
 			// turn left
 		}
-		if (shapeSprite.getPosition().x  > body.getPosition().x)
+		if (shapeSprite.getPosition().x > body.getPosition().x)
 		{
 			body.move(0.08, 0);
 		}
@@ -575,7 +576,7 @@ public:
 			else if (dif <= 7) body.move(0.08, 0);
 			if (head == 1)
 			{
-				if(dif <= 2) body.setTextureRect(sf::IntRect(711 - width * ((animation / 250) % 3), 89*3, width, height));
+				if (dif <= 2) body.setTextureRect(sf::IntRect(711 - width * ((animation / 250) % 3), 89 * 3, width, height));
 				else if (dif <= 4)
 				{
 					if (RS == 0)
@@ -583,7 +584,7 @@ public:
 						roarEF.play();
 						RS = 1;
 					}
-					body.setTextureRect(sf::IntRect(711 - width * 3, 89*3+1, width, height));
+					body.setTextureRect(sf::IntRect(711 - width * 3, 89 * 3 + 1, width, height));
 					if (roar == 0)
 					{
 						view.move(20, 0);
@@ -624,7 +625,7 @@ public:
 			}
 			else
 			{
-				if (dif <= 2) body.setTextureRect(sf::IntRect(width * ((animation / 250) % 3), 89*3, width, height));
+				if (dif <= 2) body.setTextureRect(sf::IntRect(width * ((animation / 250) % 3), 89 * 3, width, height));
 				else if (dif <= 4)
 				{
 					if (RS == 0)
@@ -632,7 +633,7 @@ public:
 						roarEF.play();
 						RS = 1;
 					}
-					body.setTextureRect(sf::IntRect(width * 3 , 89*3 +1, width, height));
+					body.setTextureRect(sf::IntRect(width * 3, 89 * 3 + 1, width, height));
 					if (roar == 0)
 					{
 						view.move(20, 0);
@@ -785,8 +786,8 @@ public:
 		}
 		if (dif <= 3)
 		{
-			if(head == 1) body.setTextureRect(sf::IntRect(711 - width * ((animation / 250) % 3), 89 * 3, width, height));
-			else if(head == 2) body.setTextureRect(sf::IntRect(width * ((animation / 250) % 3), 89 * 3, width, height));
+			if (head == 1) body.setTextureRect(sf::IntRect(711 - width * ((animation / 250) % 3), 89 * 3, width, height));
+			else if (head == 2) body.setTextureRect(sf::IntRect(width * ((animation / 250) % 3), 89 * 3, width, height));
 		}
 		else if (dif <= 10)
 		{
@@ -838,7 +839,7 @@ public:
 			if (head == 1) body.setTextureRect(sf::IntRect(711 - width * ((animation / 250) % 3), 89 * 3, width, height));
 			else if (head == 2) body.setTextureRect(sf::IntRect(width * ((animation / 250) % 3), 89 * 3, width, height));
 		}
-		else if(dif >16 && mv == 0)
+		else if (dif > 16 && mv == 0)
 		{
 			if (head == 1 && body.getPosition().x - shapeSprite.getPosition().x > -470)
 			{
@@ -986,9 +987,9 @@ public:
 		ran = rand() % 3;
 		roar = 0;
 		STATE = 1;
-		stone1.setPosition(-100,-100);
-		stone2.setPosition(-100,-100);
-		stone3.setPosition(-100,-100);
+		stone1.setPosition(-100, -100);
+		stone2.setPosition(-100, -100);
+		stone3.setPosition(-100, -100);
 	}
 	void move() // turn left or right
 	{
@@ -1439,7 +1440,7 @@ public:
 	{
 		this->num = 0;
 		this->state = 0;
-		body.setTextureRect(sf::IntRect(0,0,0,0));
+		body.setTextureRect(sf::IntRect(0, 0, 0, 0));
 		body.setPosition(-1, -1);
 	}
 	void set(float x, float y, int a)
@@ -1458,10 +1459,10 @@ public:
 			body.setTexture(item3Texture);
 		}
 		body.setTextureRect(sf::IntRect(0, 0, width[a - 1], height[a - 1]));
-		body.setPosition(x,y);
+		body.setPosition(x, y);
 		this->state = 1;
 		this->air = 1;
-		this->speed = 0.3*Speed;
+		this->speed = 0.3 * Speed;
 	}
 	void move()
 	{
@@ -1484,7 +1485,7 @@ public:
 		}
 		if (air == 2)
 		{
-			speed += 0.0005*Speed*Speed;
+			speed += 0.0005 * Speed * Speed;
 			body.move(0.f, speed);
 			i = 0;
 			for (std::vector<GROUND>::iterator it = ground.begin(); it != ground.end(); i++, it++)
@@ -1511,7 +1512,7 @@ public:
 	sf::Sprite body;
 	void re()
 	{
-		body.setPosition(-100,-100);
+		body.setPosition(-100, -100);
 		this->state = 1;
 	}
 	void set(float x, float y)
@@ -1519,7 +1520,7 @@ public:
 		body.setTexture(chestTexture);
 		body.setTextureRect(sf::IntRect(0, 0, width, height));
 		this->state = 1;
-		body.setPosition(x, y-height);
+		body.setPosition(x, y - height);
 	}
 	void open()
 	{
@@ -1530,11 +1531,11 @@ public:
 			{
 				if (ITEM[i].state == 0)
 				{
-					ITEM[i].set(body.getPosition().x + ((width - ITEM[i].width[a-1]) / 2), body.getPosition().y + 5, a);
+					ITEM[i].set(body.getPosition().x + ((width - ITEM[i].width[a - 1]) / 2), body.getPosition().y + 5, a);
 					break;
 				}
 			}
-			body.setTextureRect(sf::IntRect(0, height+difH, width, height));
+			body.setTextureRect(sf::IntRect(0, height + difH, width, height));
 			this->state = 2;
 			fish += 20;
 			score += 200;
@@ -1547,7 +1548,7 @@ void damageCal();
 void shoot();
 void setText();
 void showText();
-std::string changeNtoS(int ,int);
+std::string changeNtoS(int, int);
 std::string changeNtoS(int);
 void scratch();
 void loadTexture();
@@ -1599,10 +1600,10 @@ int main()
 	srand(time(NULL));
 	startView = window.getView();
 	setup();
-	menu:
+menu:
 	start();
 	MENU();
-	quit:
+quit:
 	if (close == 1)return 0;
 	//goto s;
 	stage1();
@@ -1629,7 +1630,7 @@ int main()
 			gameover();
 		}
 		if (BTM == 1)goto menu;
-		if(close == 1)goto quit;
+		if (close == 1)goto quit;
 	}
 	reset();
 	shop();
@@ -1748,7 +1749,7 @@ int main()
 
 void mainCharacter()
 {
-	if (RH == 1) 
+	if (RH == 1)
 	{
 		shapeSprite.setTexture(playerTextureRight);
 		shapeSprite.setTextureRect(sf::IntRect(36 + (39 * ((animation / (150 / (int)Speed)) % 6)), 22, 40, 54));
@@ -1762,17 +1763,17 @@ void mainCharacter()
 	animation++;
 	Ranimation++;
 	Lanimation++;
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::A) && shapeSprite.getPosition().x > startx&&!sf::Keyboard::isKeyPressed(sf::Keyboard::D))
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::A) && shapeSprite.getPosition().x > startx && !sf::Keyboard::isKeyPressed(sf::Keyboard::D))
 	{
 		RH = 2;
 		shapeSprite.move(-0.18f * Speed, 0.f);
-		if ((view.getCenter().x - shapeSprite.getPosition().x >= -16) && view.getCenter().x - 540 > startx && moveView == 0)view.move(-0.18* Speed, 0);
+		if ((view.getCenter().x - shapeSprite.getPosition().x >= -16) && view.getCenter().x - 540 > startx && moveView == 0)view.move(-0.18 * Speed, 0);
 		i = 0;
 		for (std::vector<GROUND>::iterator it = ground.begin(); it != ground.end(); i++, it++)
 		{
 			if (shapeSprite.getGlobalBounds().intersects(ground[i].ground.getGlobalBounds()))
 			{
-				if (shapeSprite.getPosition().y + shapeSprite.getTextureRect().height - 2 > ground[i].ground.getPosition().y && shapeSprite.getPosition().x > ground[i].ground.getPosition().x )
+				if (shapeSprite.getPosition().y + shapeSprite.getTextureRect().height - 2 > ground[i].ground.getPosition().y && shapeSprite.getPosition().x > ground[i].ground.getPosition().x)
 				{
 					shapeSprite.move(0.18f * Speed, 0.f);
 					if ((view.getCenter().x - shapeSprite.getPosition().x >= -16) && view.getCenter().x - 540 > startx && moveView == 0)view.move(0.18 * Speed, 0);
@@ -1780,10 +1781,10 @@ void mainCharacter()
 				}
 			}
 		}
-		shapeSprite.setTextureRect(sf::IntRect(626-39-(280 + 38 * ((Lanimation / (100/ (int)Speed)) % 6)), 22, 39, 54));
+		shapeSprite.setTextureRect(sf::IntRect(626 - 39 - (280 + 38 * ((Lanimation / (100 / (int)Speed)) % 6)), 22, 39, 54));
 		Ranimation = animation = 0;
 	}
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)&&shapeSprite.getPosition().x+32<endx&& !sf::Keyboard::isKeyPressed(sf::Keyboard::A))
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::D) && shapeSprite.getPosition().x + 32 < endx && !sf::Keyboard::isKeyPressed(sf::Keyboard::A))
 	{
 		RH = 1;
 		shapeSprite.move(.18f * Speed, 0.f);
@@ -1793,7 +1794,7 @@ void mainCharacter()
 		{
 			if (shapeSprite.getGlobalBounds().intersects(ground[i].ground.getGlobalBounds()))
 			{
-				if (shapeSprite.getPosition().y + shapeSprite.getTextureRect().height-2 > ground[i].ground.getPosition().y && shapeSprite.getPosition().x < ground[i].ground.getPosition().x)
+				if (shapeSprite.getPosition().y + shapeSprite.getTextureRect().height - 2 > ground[i].ground.getPosition().y && shapeSprite.getPosition().x < ground[i].ground.getPosition().x)
 				{
 					shapeSprite.move(-0.18f * Speed, 0.f);
 					if ((view.getCenter().x - shapeSprite.getPosition().x <= 16) && view.getCenter().x + 540 < endx && moveView == 0)view.move(-.18 * Speed, 0);
@@ -1804,10 +1805,10 @@ void mainCharacter()
 		shapeSprite.setTextureRect(sf::IntRect(280 + 38 * ((Ranimation / (100 / (int)Speed)) % 6), 22, 39, 54));
 		Lanimation = animation = 0;
 	}
-	if ((sf::Keyboard::isKeyPressed(sf::Keyboard::K) && bullet == 0 && fishbone > 0)||(fishbonecase && sf::Keyboard::isKeyPressed(sf::Keyboard::K)&&bullet == 0))
+	if ((sf::Keyboard::isKeyPressed(sf::Keyboard::K) && bullet == 0 && fishbone > 0) || (fishbonecase && sf::Keyboard::isKeyPressed(sf::Keyboard::K) && bullet == 0))
 	{
 		startB = clock();
-		if(!fishbonecase)fishbone--;
+		if (!fishbonecase)fishbone--;
 		BH = RH;
 		bullet = 1;
 	}
@@ -1836,7 +1837,7 @@ void mainCharacter()
 			if (s == 1)break;
 			for (int i = 0; i < it; i++)
 			{
-				if (shapeSprite.getGlobalBounds().intersects(ITEM[i].body.getGlobalBounds())&&ITEM[i].air != 1)
+				if (shapeSprite.getGlobalBounds().intersects(ITEM[i].body.getGlobalBounds()) && ITEM[i].air != 1)
 				{
 					collectitemEF.play();
 					s = 1;
@@ -1882,12 +1883,12 @@ void mainCharacter()
 	if ((sf::Keyboard::isKeyPressed(sf::Keyboard::W)) && !down && !up)
 	{
 		jumpEF.play();
-		speed = 0.9*Speed;
+		speed = 0.9 * Speed;
 		up = 1;
 	}
 	if (up)
 	{
-		speed -= 0.0019125*(Speed*Speed);
+		speed -= 0.0019125 * (Speed * Speed);
 		shapeSprite.move(.0f, -speed);
 		i = 0;
 		for (std::vector<GROUND>::iterator it = ground.begin(); it != ground.end(); i++, it++)
@@ -1900,8 +1901,8 @@ void mainCharacter()
 				}
 			}
 		}
-		if(RH == 1)shapeSprite.setTextureRect(sf::IntRect(330, 234, 40, 56));
-		else shapeSprite.setTextureRect(sf::IntRect(626-40-330, 234, 40, 56));
+		if (RH == 1)shapeSprite.setTextureRect(sf::IntRect(330, 234, 40, 56));
+		else shapeSprite.setTextureRect(sf::IntRect(626 - 40 - 330, 234, 40, 56));
 		if (speed <= 0)up = 0;
 	}
 	i = 0;
@@ -1923,7 +1924,7 @@ void mainCharacter()
 	}
 	if (down)
 	{
-		speed += 0.0019125 *Speed*Speed;
+		speed += 0.0019125 * Speed * Speed;
 		shapeSprite.move(0.f, speed);
 		i = 0;
 		for (std::vector<GROUND>::iterator it = ground.begin(); it != ground.end(); i++, it++)
@@ -1933,7 +1934,7 @@ void mainCharacter()
 				if (shapeSprite.getPosition().y > ground[i].ground.getPosition().y)
 				{
 					shapeSprite.move(0.f, shapeSprite.getPosition().y - ground[i].ground.getPosition().y);
-				} 
+				}
 				down = 0;
 				break;
 			}
@@ -1946,15 +1947,15 @@ void mainCharacter()
 		dif = (endt - startB) / CLOCKS_PER_SEC;
 		if (RH == 1)
 		{
-			if(dif <= 0.1) shapeSprite.setTextureRect(sf::IntRect(149, 94, 40, 54));
-			else if(dif <= 0.2) shapeSprite.setTextureRect(sf::IntRect(185, 94, 40, 54));
-			else if(dif <= 0.3) shapeSprite.setTextureRect(sf::IntRect(149, 94, 40, 54));
+			if (dif <= 0.1) shapeSprite.setTextureRect(sf::IntRect(149, 94, 40, 54));
+			else if (dif <= 0.2) shapeSprite.setTextureRect(sf::IntRect(185, 94, 40, 54));
+			else if (dif <= 0.3) shapeSprite.setTextureRect(sf::IntRect(149, 94, 40, 54));
 		}
 		else
 		{
-			if (dif <= 0.1) shapeSprite.setTextureRect(sf::IntRect(626-40-149, 94, 40, 54));
-			else if (dif <= 0.2) shapeSprite.setTextureRect(sf::IntRect(626-40-185, 94, 40, 54));
-			else if (dif <= 0.3) shapeSprite.setTextureRect(sf::IntRect(626-40-149, 94, 40, 54));
+			if (dif <= 0.1) shapeSprite.setTextureRect(sf::IntRect(626 - 40 - 149, 94, 40, 54));
+			else if (dif <= 0.2) shapeSprite.setTextureRect(sf::IntRect(626 - 40 - 185, 94, 40, 54));
+			else if (dif <= 0.3) shapeSprite.setTextureRect(sf::IntRect(626 - 40 - 149, 94, 40, 54));
 		}
 	}
 	if (attack > 0)
@@ -2672,7 +2673,7 @@ void setText()
 	SHOP[3].setString("05x");
 }
 
-std::string changeNtoS(int num,int zero)
+std::string changeNtoS(int num, int zero)
 {
 	char b[10];
 	b[zero] = '\0';
@@ -2680,10 +2681,10 @@ std::string changeNtoS(int num,int zero)
 	std::string a = "";
 	for (int i = zero; i >= 1; i--)
 	{
-		b[i - 1] = (n % 10)+'0';
+		b[i - 1] = (n % 10) + '0';
 		n /= 10;
 	}
-	a.insert(0,b);
+	a.insert(0, b);
 	return a;
 }
 
@@ -2700,8 +2701,8 @@ std::string changeNtoS(int num)
 		n /= 10;
 	}
 	n = num;
-	b[max+1] = '\0';
-	while (max>=0)
+	b[max + 1] = '\0';
+	while (max >= 0)
 	{
 		b[index] = (int)(n / pow(10, max)) + '0';
 		if (max > 0)n %= (int)pow(10, max);
@@ -2721,11 +2722,11 @@ void scratch()
 		attack = 2;
 		if (AH == 1)
 		{
-			attackSprite.setPosition(shapeSprite.getPosition().x + 35 , shapeSprite.getPosition().y-12);
+			attackSprite.setPosition(shapeSprite.getPosition().x + 35, shapeSprite.getPosition().y - 12);
 		}
 		else
 		{
-			attackSprite.setPosition(shapeSprite.getPosition().x - 38, shapeSprite.getPosition().y-12);
+			attackSprite.setPosition(shapeSprite.getPosition().x - 38, shapeSprite.getPosition().y - 12);
 		}
 		attackSprite.setTextureRect(sf::IntRect(78, 24, 48, 0));
 	}
@@ -2850,7 +2851,7 @@ void scratch()
 		attack = 0;
 	}
 	else if (dif > 0.25)
-	{ 
+	{
 		attackSprite.setTextureRect(sf::IntRect(0, 0, 0, 0));
 		attack = 4;
 	}
@@ -3083,16 +3084,16 @@ void setSprite()
 	attackSprite.setTexture(attackTexture);
 
 	heart.setTexture(heartTexture);
-	heart.setTextureRect(sf::IntRect(0,0,48,48));
+	heart.setTextureRect(sf::IntRect(0, 0, 48, 48));
 
 	fishForShow.setTexture(fishForShowTexture);
 	fishForShow.setTextureRect(sf::IntRect(0, 0, 48, 51));
 
 	fishboneForShow.setTexture(fishboneForShowTexture);
-	fishboneForShow.setTextureRect(sf::IntRect(0,0,56,54));
+	fishboneForShow.setTextureRect(sf::IntRect(0, 0, 56, 54));
 
 	Bullet.setTexture(fishboneTexture);
-	Bullet.setTextureRect(sf::IntRect(0,0,26,24));
+	Bullet.setTextureRect(sf::IntRect(0, 0, 26, 24));
 
 	inventory1.setTexture(inventoryTexture);
 	inventory1.setTextureRect(sf::IntRect(0, 0, 56, 53));
@@ -3175,21 +3176,21 @@ void firstTextSet()
 void setGround1()
 {// if intersect posx -= 9.5
 //  ground.push_back(GROUND(sizex, sizey,	posx, posy,		g,	underground)); 
-	ground.push_back(GROUND(1600.0, 32.0,	1210.0, 632.0,	1,	1)); // 0
-	ground.push_back(GROUND(1216.0, 32.0,	0.0,	600.0,	1,	1)); // 1
-	ground.push_back(GROUND(96.0,	32.0,	0.0,	568.0,	1,	1)); // 2
-	ground.push_back(GROUND(288.0,	32.0,	200.0,	400.0,	1,	0)); // 3
-	ground.push_back(GROUND(192.0,	32.0,	950.5,	568.0,	1,	1)); // 4
-	ground.push_back(GROUND(32.0,	232.0,	2778.0,	433.0,	1,	0)); // 5 I
-	ground.push_back(GROUND(1472.0, 32.0,	1306.0, 432.0,	1,	0)); // 6
-	ground.push_back(GROUND(3000.0,	32.0,	3088.5, 632.0,	1,	1)); // 7
-	ground.push_back(GROUND(32.0,	328.0,	3066.0,	432.0,	1,	0)); // 8 I
-	ground.push_back(GROUND(320.0,	32.0,	2780.0, 368.0,	1,	1)); // 9
-	ground.push_back(GROUND(1100.0, 32.0,	3748.0,	600.0,	1,	1)); // 10
-	ground.push_back(GROUND(150.0,	32.0,	3850.0,	400.0,	1,	0)); // 11
-	ground.push_back(GROUND(150.0,	32.0,	4100.0, 400.0,	1,	0)); // 12
-	ground.push_back(GROUND(150.0,	32.0,	4350.0, 400.0,	1,	0)); // 13
-	ground.push_back(GROUND(150.0,	32.0,	4600.0, 400.0,	1,	0)); // 14
+	ground.push_back(GROUND(1600.0, 32.0, 1210.0, 632.0, 1, 1)); // 0
+	ground.push_back(GROUND(1216.0, 32.0, 0.0, 600.0, 1, 1)); // 1
+	ground.push_back(GROUND(96.0, 32.0, 0.0, 568.0, 1, 1)); // 2
+	ground.push_back(GROUND(288.0, 32.0, 200.0, 400.0, 1, 0)); // 3
+	ground.push_back(GROUND(192.0, 32.0, 950.5, 568.0, 1, 1)); // 4
+	ground.push_back(GROUND(32.0, 232.0, 2778.0, 433.0, 1, 0)); // 5 I
+	ground.push_back(GROUND(1472.0, 32.0, 1306.0, 432.0, 1, 0)); // 6
+	ground.push_back(GROUND(3000.0, 32.0, 3088.5, 632.0, 1, 1)); // 7
+	ground.push_back(GROUND(32.0, 328.0, 3066.0, 432.0, 1, 0)); // 8 I
+	ground.push_back(GROUND(320.0, 32.0, 2780.0, 368.0, 1, 1)); // 9
+	ground.push_back(GROUND(1100.0, 32.0, 3748.0, 600.0, 1, 1)); // 10
+	ground.push_back(GROUND(150.0, 32.0, 3850.0, 400.0, 1, 0)); // 11
+	ground.push_back(GROUND(150.0, 32.0, 4100.0, 400.0, 1, 0)); // 12
+	ground.push_back(GROUND(150.0, 32.0, 4350.0, 400.0, 1, 0)); // 13
+	ground.push_back(GROUND(150.0, 32.0, 4600.0, 400.0, 1, 0)); // 14
 }
 
 void setMonster1()
@@ -3208,7 +3209,7 @@ void setMonster1()
 	NBear[11].set(2125, 432); // g6
 	NBear[12].set(2250, 432); // g6
 	NBear[13].set(2500, 432); // g6
-	
+
 	TBear[0].set(340, 400); // g1
 	TBear[1].set(2852, 368); // g9
 	TBear[2].set(3026, 368); // g9
@@ -3296,7 +3297,7 @@ void setHead()
 {
 	heart.setPosition(view.getCenter().x + 225, 8);
 	fishForShow.setPosition(view.getCenter().x - 165, 9);
-	fishboneForShow.setPosition(view.getCenter().x+30, 9);
+	fishboneForShow.setPosition(view.getCenter().x + 30, 9);
 	inventory1.setPosition(view.getCenter().x + 407, 9);
 	inventory2.setPosition(view.getCenter().x + 463, 9);
 	item2.setPosition(view.getCenter().x + 477, 16);
@@ -3623,41 +3624,41 @@ void MENU()
 		endt = clock();
 		switch (menu)
 		{
-			case 0:
+		case 0:
+		{
+			Menu[0].setFillColor(sf::Color::Red);
+			Menu[1].setFillColor(sf::Color::White);
+			Menu[2].setFillColor(sf::Color::White);
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Enter))
 			{
-				Menu[0].setFillColor(sf::Color::Red);
-				Menu[1].setFillColor(sf::Color::White);
-				Menu[2].setFillColor(sf::Color::White);
-				if (sf::Keyboard::isKeyPressed(sf::Keyboard::Enter))
-				{
-					close = 2;
-				}
-				break;
+				close = 2;
 			}
+			break;
+		}
 
-			case 1:
+		case 1:
+		{
+			Menu[0].setFillColor(sf::Color::White);
+			Menu[1].setFillColor(sf::Color::Red);
+			Menu[2].setFillColor(sf::Color::White);
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Enter))
 			{
-				Menu[0].setFillColor(sf::Color::White);
-				Menu[1].setFillColor(sf::Color::Red);
-				Menu[2].setFillColor(sf::Color::White);
-				if (sf::Keyboard::isKeyPressed(sf::Keyboard::Enter))
-				{
-					leaderboard();
-				}
-				break;
+				leaderboard();
 			}
+			break;
+		}
 
-			case 2:
+		case 2:
+		{
+			Menu[0].setFillColor(sf::Color::White);
+			Menu[1].setFillColor(sf::Color::White);
+			Menu[2].setFillColor(sf::Color::Red);
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Enter))
 			{
-				Menu[0].setFillColor(sf::Color::White);
-				Menu[1].setFillColor(sf::Color::White);
-				Menu[2].setFillColor(sf::Color::Red);
-				if (sf::Keyboard::isKeyPressed(sf::Keyboard::Enter))
-				{
-					exitFromMenu();
-				}
-				break;
+				exitFromMenu();
 			}
+			break;
+		}
 		}
 		if ((double)(endt - startM) / CLOCKS_PER_SEC > 0.2)
 		{
@@ -3737,29 +3738,29 @@ void exitFromMenu()
 		endt = clock();
 		switch (exit)
 		{
-			case 1:
+		case 1:
+		{
+			Exit[1].setFillColor(sf::Color::Red);
+			Exit[2].setFillColor(sf::Color::White);
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Enter))
 			{
-				Exit[1].setFillColor(sf::Color::Red);
-				Exit[2].setFillColor(sf::Color::White);
-				if (sf::Keyboard::isKeyPressed(sf::Keyboard::Enter))
-				{
-					window.close();
-					close = 1;
-				}
-				break;
+				window.close();
+				close = 1;
 			}
+			break;
+		}
 
-			case 2:
+		case 2:
+		{
+			Exit[1].setFillColor(sf::Color::White);
+			Exit[2].setFillColor(sf::Color::Red);
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Enter))
 			{
-				Exit[1].setFillColor(sf::Color::White);
-				Exit[2].setFillColor(sf::Color::Red);
-				if (sf::Keyboard::isKeyPressed(sf::Keyboard::Enter))
-				{
-					closeEx = 1;
-					while (sf::Keyboard::isKeyPressed(sf::Keyboard::Enter));
-				}
-				break;
+				closeEx = 1;
+				while (sf::Keyboard::isKeyPressed(sf::Keyboard::Enter));
 			}
+			break;
+		}
 		}
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape))
 		{
@@ -4176,7 +4177,7 @@ void startdata()
 	ch = fscanf(fp, "%s", a);
 	fscanf(fp, "%d", &b);
 	while (!data.empty()) data.erase(data.begin());
-	if (ch == EOF)	
+	if (ch == EOF)
 	{
 		fclose(fp);
 		fp = fopen("highscore/data.txt", "w");
@@ -4186,13 +4187,13 @@ void startdata()
 		data.insert(std::pair<int, std::string>(500, "d"));
 		data.insert(std::pair<int, std::string>(300, "e"));
 		int i = 0;
-		for (std::map<int, std::string>::iterator it = data.begin();i<5; it++,i++)
+		for (std::map<int, std::string>::iterator it = data.begin(); i < 5; it++, i++)
 		{
 			for (int j = 0; it->second[j] != '\0'; j++)
 			{
 				fprintf(fp, "%c", it->second[j]);
 			}
-			fprintf(fp, " %d\n",it->first);
+			fprintf(fp, " %d\n", it->first);
 		}
 	}
 	else
@@ -4386,7 +4387,7 @@ void gameover()
 			window.draw(it->ground);
 			window.draw(it->underGround);
 		}
-		if(HP<0)window.draw(gameoverBG);
+		if (HP < 0)window.draw(gameoverBG);
 		else window.draw(congratBG);
 		for (int i = 0; i < 2; i++)
 		{
@@ -4477,16 +4478,16 @@ void shop()
 void setGroundShop()
 {
 	//  ground.push_back(GROUND(sizex, sizey,	posx,	posy,	g,	underground)); 
-	ground.push_back(GROUND(2000.0,		32.0,	0.0, 600,	2,	2)); // 0
+	ground.push_back(GROUND(2000.0, 32.0, 0.0, 600, 2, 2)); // 0
 }
 
 void buy(int a)
 {
-	sf::Sprite cost,pic;
+	sf::Sprite cost, pic;
 	int exit = 2;
 	int price;
 	sf::Text t1, t2, t3;
-	
+
 	cost.setTexture(fishForShowTexture);
 	cost.setPosition(sf::Vector2f(window.getView().getCenter().x + 285, 245));
 
@@ -4504,7 +4505,7 @@ void buy(int a)
 	t2.setOutlineColor(sf::Color::Black);
 	t2.setCharacterSize(100);
 	t2.setStyle(sf::Text::Bold);
-	t2.setPosition(sf::Vector2f(window.getView().getCenter().x - 150 , 200));
+	t2.setPosition(sf::Vector2f(window.getView().getCenter().x - 150, 200));
 
 	t3.setFont(font);
 	t3.setFillColor(sf::Color::White);
@@ -4518,45 +4519,45 @@ void buy(int a)
 	switch (a)
 	{
 	case 0:
-		{
-			price = 30;
-			t2.setString("with 30 x");
-			pic.setTexture(heartTexture);
-			break;
-		}
+	{
+		price = 30;
+		t2.setString("with 30 x");
+		pic.setTexture(heartTexture);
+		break;
+	}
 	case 1:
-		{
-			price = 40;
-			t2.setString("with 40 x");
-			pic.setTexture(rngboxTexture);
-			pic.move(-5, 0);
-			break;
-		}
+	{
+		price = 40;
+		t2.setString("with 40 x");
+		pic.setTexture(rngboxTexture);
+		pic.move(-5, 0);
+		break;
+	}
 	case 2:
+	{
+		if (attackDamage == 5)
 		{
-			if (attackDamage == 5)
-			{
-				price = 20;
-				t2.setString("with 20 x");
-				pic.setTexture(weapon2Texture);
-			}
-			else if (attackDamage == 10)
-			{
-				price = 50;
-				t2.setString("with 50 x");
-				pic.setTexture(weapon3Texture);
-			}
-			else goto end;
-			break;
+			price = 20;
+			t2.setString("with 20 x");
+			pic.setTexture(weapon2Texture);
 		}
+		else if (attackDamage == 10)
+		{
+			price = 50;
+			t2.setString("with 50 x");
+			pic.setTexture(weapon3Texture);
+		}
+		else goto end;
+		break;
+	}
 	case 3:
-		{
-			price = 5;
-			t2.setString("with 05 x");
-			pic.setTexture(fishboneForShowTexture);
-			pic.move(-10, 0);
-			break;
-		}
+	{
+		price = 5;
+		t2.setString("with 05 x");
+		pic.setTexture(fishboneForShowTexture);
+		pic.move(-10, 0);
+		break;
+	}
 	}
 	for (int i = 0; i < 3; i++)
 	{
@@ -4592,22 +4593,22 @@ void buy(int a)
 					buyEF.play();
 					switch (a)
 					{
-						case 0: {HP++; break; }
-						case 1: 
+					case 0: {HP++; break; }
+					case 1:
+					{
+						int r = (rand() % 2) + 2;
+						for (int i = 0; i < it; i++)
 						{
-							int r = (rand() % 2) + 2;
-							for (int i = 0; i < it; i++)
+							if (ITEM[i].state == 0)
 							{
-								if (ITEM[i].state == 0)
-								{
-									ITEM[i].set(417, 500,r);
-									break;
-								}
+								ITEM[i].set(417, 500, r);
+								break;
 							}
-							break;
 						}
-						case 2: {attackDamage *= 2; break; }
-						case 3: {fishbone++; break; }
+						break;
+					}
+					case 2: {attackDamage *= 2; break; }
+					case 3: {fishbone++; break; }
 					}
 					closeEx = 1;
 				}
@@ -4619,7 +4620,7 @@ void buy(int a)
 		{
 			Exit[1].setFillColor(sf::Color::White);
 			Exit[2].setFillColor(sf::Color::Red);
-			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Enter) )
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Enter))
 			{
 				closeEx = 1;
 				while (sf::Keyboard::isKeyPressed(sf::Keyboard::Enter));
@@ -4750,7 +4751,7 @@ void buy(int a)
 		window.clear();
 		if (closeEx == 1)break;
 	}
-	end:{}
+end: {}
 }
 
 void stage2()
@@ -4771,22 +4772,22 @@ void stage2()
 void setGround2()
 {
 	//  ground.push_back(GROUND(sizex,	sizey,	posx,	posy,	g,	underground)); 
-	ground.push_back(GROUND(	480.0,	32.0,	0.0,	600.0,	3,	3)); // 0
-	ground.push_back(GROUND(	320.0,	32.0,	480.0,	536.0,	3,	3)); // 1
-	ground.push_back(GROUND(	320.0,	32.0,	800.0,	472.0,	3,	3)); // 2
-	ground.push_back(GROUND(	320.0,	32.0,	1120.0,	408.0,	3,	3)); // 3
-	ground.push_back(GROUND(	320.0,	32.0,	1440.0,	344.0,	3,	3)); // 4
-	ground.push_back(GROUND(	320.0,	32.0,	1760.0, 280.0,	3,	3)); // 5
-	ground.push_back(GROUND(	32.0,	640.0,	2048.0,	280.0,	3,	3)); // 6 I
-	ground.push_back(GROUND(	240.0,	32.0,	2256.0, 280.0,	3,	0)); // 7
-	ground.push_back(GROUND(	240.0,	32.0,	2672.0, 280.0,	3,	0)); // 8
-	ground.push_back(GROUND(	240.0,	32.0,	3088.0, 280.0,	3,	0)); // 9
-	ground.push_back(GROUND(	240.0,	32.0,	3504.0, 280.0,	3,	0)); // 10
-	ground.push_back(GROUND(	1760.0,	32.0,	2080.0, 568.0,	3,	3)); // 11
-	ground.push_back(GROUND(	160.0,	32.0,	3840.0, 536.0,	3,	3)); // 12
-	ground.push_back(GROUND(	480.0,	32.0,	4000.0, 568.0,	3,	3)); // 13
-	ground.push_back(GROUND(	1100.0,	32.0,	4480.0, 504.0,	3,	3)); // 14
-	ground.push_back(GROUND(	360.0,	32.0,	5580.0, 536.0,	3,	3)); // 15
+	ground.push_back(GROUND(480.0, 32.0, 0.0, 600.0, 3, 3)); // 0
+	ground.push_back(GROUND(320.0, 32.0, 480.0, 536.0, 3, 3)); // 1
+	ground.push_back(GROUND(320.0, 32.0, 800.0, 472.0, 3, 3)); // 2
+	ground.push_back(GROUND(320.0, 32.0, 1120.0, 408.0, 3, 3)); // 3
+	ground.push_back(GROUND(320.0, 32.0, 1440.0, 344.0, 3, 3)); // 4
+	ground.push_back(GROUND(320.0, 32.0, 1760.0, 280.0, 3, 3)); // 5
+	ground.push_back(GROUND(32.0, 640.0, 2048.0, 280.0, 3, 3)); // 6 I
+	ground.push_back(GROUND(240.0, 32.0, 2256.0, 280.0, 3, 0)); // 7
+	ground.push_back(GROUND(240.0, 32.0, 2672.0, 280.0, 3, 0)); // 8
+	ground.push_back(GROUND(240.0, 32.0, 3088.0, 280.0, 3, 0)); // 9
+	ground.push_back(GROUND(240.0, 32.0, 3504.0, 280.0, 3, 0)); // 10
+	ground.push_back(GROUND(1760.0, 32.0, 2080.0, 568.0, 3, 3)); // 11
+	ground.push_back(GROUND(160.0, 32.0, 3840.0, 536.0, 3, 3)); // 12
+	ground.push_back(GROUND(480.0, 32.0, 4000.0, 568.0, 3, 3)); // 13
+	ground.push_back(GROUND(1100.0, 32.0, 4480.0, 504.0, 3, 3)); // 14
+	ground.push_back(GROUND(360.0, 32.0, 5580.0, 536.0, 3, 3)); // 15
 }
 
 void setMonster2()
@@ -4932,9 +4933,9 @@ void stage3()
 void setGround3()
 {
 	//  ground.push_back(GROUND(sizex,	sizey,	posx,	posy,	g,	underground)); 
-	ground.push_back(GROUND(	480.0,	32.0,	0.0,	600.0,	4,	4)); // 0
-	ground.push_back(GROUND(	1090.0,	32.0,	480.0,	568.0,	4,	4)); // 1
-	ground.push_back(GROUND(	240.0,	32.0,	1570.0,	600.0,	4,	4)); // 2
+	ground.push_back(GROUND(480.0, 32.0, 0.0, 600.0, 4, 4)); // 0
+	ground.push_back(GROUND(1090.0, 32.0, 480.0, 568.0, 4, 4)); // 1
+	ground.push_back(GROUND(240.0, 32.0, 1570.0, 600.0, 4, 4)); // 2
 }
 
 void setMonster3()
@@ -5023,7 +5024,7 @@ void saveData()
 				while (sf::Keyboard::isKeyPressed(sf::Keyboard::Enter));
 				break;
 			}
-			else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Backspace) && name.length() > 0 && (endt - startB)/CLOCKS_PER_SEC > 0.2)
+			else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Backspace) && name.length() > 0 && (endt - startB) / CLOCKS_PER_SEC > 0.2)
 			{
 				std::string::iterator it = name.begin();
 				while (it != name.end())it++;

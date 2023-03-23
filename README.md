@@ -1,5 +1,5 @@
 # The Cat's revenge
-โปรเจคนี้มีชื่อว่า "The Cat's revenge" ทำขึ้นเพื่อสร้างเกมจากภาษา C++ โดยใช้ SFML 2.5.1
+โปรเจคนี้มีชื่อว่า "The Cat's revenge" ทำขึ้นเพื่อสร้างเกมจากภาษา C++ ด้วย Visual Studio โดยใช้ SFML 2.5.1
 
 ![alt text](https://github.com/tsunafield1/The_Cat_revenge/blob/master/Infographics.png?raw=true)
 

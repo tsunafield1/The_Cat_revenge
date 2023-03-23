@@ -1547,7 +1547,6 @@ void mainCharacter();
 void damageCal();
 void shoot();
 void setText();
-void showText();
 std::string changeNtoS(int, int);
 std::string changeNtoS(int);
 void scratch();

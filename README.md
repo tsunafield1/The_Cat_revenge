@@ -1,6 +1,7 @@
 # The Cat's revenge
 โปรเจคนี้มีชื่อว่า "The Cat's revenge" ทำขึ้นเพื่อสร้างเกมจากภาษา C++ ด้วย Visual Studio โดยใช้ SFML 2.5.1
 
+![alt text](https://github.com/tsunafield1/The_Cat_revenge/blob/master/Example.PNG)
 ![alt text](https://github.com/tsunafield1/The_Cat_revenge/blob/master/Infographics.png?raw=true)
 
 โดยหลักการทำงานของเกม คือ ใช้ while loop ครอบการตรวจสอบเงื่อนไข และการควบคุมต่างๆ เอาไว้ เพื่อให้เกมเกิดทำงานซ้ำต่อไปเรื่อยๆ
